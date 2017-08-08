@@ -33,12 +33,13 @@ module.exports = {
     context: __dirname + "/src/client",
     devtool: debug ? "inline-sourcemap" : null,
     entry: {
-        js: ["./js/client", "./js/pages/home/Home"],
+        js: ["./js/app"],
         vendor: [
             "react",
             "react-dom",
             "react-router-dom",
-            "react-async-component",
+            "material-ui",
+            "material-ui-icons"
         ],
     },
     module: {
