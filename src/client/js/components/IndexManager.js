@@ -5,6 +5,7 @@ import React from 'react';
 import axios from "axios";
 import AppBar from "material-ui/AppBar";
 import Button from "material-ui/Button";
+import { grey, orange, red } from 'material-ui/colors';
 import Dialog, {DialogContent} from 'material-ui/Dialog';
 import IconButton from "material-ui/IconButton";
 import { LinearProgress } from 'material-ui/Progress';
@@ -67,8 +68,19 @@ const styleSheet = createStyleSheet(theme => ({
         overflowY: "scroll",
         overflowX: "auto",
         borderWidth: "1px",
-        borderColor: theme.palette.accent[800],
+        borderColor: grey[300],
         borderStyle: "solid"
+    },
+    errorLine: {
+        '&:nth-child(even)': {
+            backgroundColor: grey[100]
+        }
+    },
+    errorError: {
+        color: red[900]
+    },
+    errorWarning: {
+        color: orange[900]
     }
 }));
 
@@ -155,9 +167,24 @@ class IndexManager extends React.Component {
                     this.setState({connectionFailed: true});
                 }
                 else {
-                    this.setState({connectionFailed: false});
-                    if (error.response.data.error == "not_found") {
-                        // TODO: Load up some default values?
+                    if (error.response.data.error == "no_activity") {
+                        this.setState({
+                            connectionFailed: false,
+                            mode: MODE_NOTHING,
+                            photosStartTime: 0,
+                            photosStopTime: 0,
+                            videosStartTime: 0,
+                            videosStopTime: 0,
+                            readingDirectories: false,
+                            photosCompleted: false,
+                            photosTotal: 0,
+                            photosCompleted: 0,
+                            photosPercent: 0,
+                            videosTotal: 0,
+                            videosCompleted: 0,
+                            videosPercent: 0,
+                            errors: []
+                        });
                     }
                 }
             });
@@ -217,7 +244,7 @@ class IndexManager extends React.Component {
                     <LinearProgress color="accent" mode="determinate" value={this.state.photosPercent} />
                     <br />
                     <Typography color="inherit" gutterBottom>
-                        {this.state.readingDirectories && this.state.mode == MODE_VIDEOS ? <CompareArrowsIcon className={classes.icon} /> : ""}
+                        {this.state.readingDirectories && this.state.mode == MODE_VIDEOS ? <CompareArrowsIcon className={classes.statusIcon} /> : ""}
                         {!this.state.readingDirectories && this.state.mode == MODE_VIDEOS ? <CachedIcon className={classes.statusIcon} /> : ""}
                         {this.state.mode > MODE_VIDEOS ? <CheckIcon className={classes.statusIcon} /> : ""}
                         Videos ({this.state.videosCompleted} / {this.state.videosTotal})
@@ -229,7 +256,15 @@ class IndexManager extends React.Component {
                     <br />
                     <Typography color="inherit">Errors</Typography>
                     <div className={classes.errorsContainer}>
-
+                        {this.state.errors.map(function(error, index) {
+                            return (
+                                <Typography key={index}
+                                    className={`${classes.errorLine}  ${error.t == "e" ? classes.errorError : classes.errorWarning}`}
+                                >
+                                    {error.m}
+                                </Typography>
+                            );
+                        })}
                     </div>
                     <br />
                     <Typography type="caption">It is safe to close this window.</Typography>
