@@ -1,15 +1,17 @@
 const constants = require("../helpers/constants.js");
 
-import React from 'react';
+import React from "react";
+import { withRouter } from "react-router-dom"
+
 import axios from "axios";
 
 import AppBar from "material-ui/AppBar";
 import IconButton from "material-ui/IconButton";
-import List, { ListItem, ListItemText } from 'material-ui/List';
-import Menu, {MenuItem} from 'material-ui/Menu'
-import Toolbar from 'material-ui/Toolbar';
-import Typography from 'material-ui/Typography';
-import { withStyles, createStyleSheet } from 'material-ui/styles';
+import List, { ListItem, ListItemText } from "material-ui/List";
+import Menu, {MenuItem} from "material-ui/Menu"
+import Toolbar from "material-ui/Toolbar";
+import Typography from "material-ui/Typography";
+import { withStyles, createStyleSheet } from "material-ui/styles";
 
 import KeyboardArrowDownIcon from "material-ui-icons/KeyboardArrowDown";
 import MoreVertIcon from "material-ui-icons/MoreVert";
@@ -22,12 +24,13 @@ const styleSheet = createStyleSheet(theme => ({
     flex: {
         flex: 1
     },
-    noFlex: {
-        flex: "none"
-    },
     netError: {
         color: theme.palette.error.A400,
         marginBottom: theme.spacing.unit
+    },
+    selector: {
+        padding: 0,
+        flex: "none"
     }
 }));
 
@@ -74,26 +77,59 @@ class PhotosAppBar extends React.Component {
             });
     }
 
+    switchYear = (event, year) => {
+        this.requestYearsMenuClose();
+        if (year == 0)
+            this.props.history.push("/");
+        else
+            this.props.history.push("/" + year);
+    }
+
+    getRoutedYear = (pathname) => {
+        var parts = pathname.split("/");
+        if (parts.length < 2 || parts[1].length < 1) {
+            return 0;
+        }
+        else {
+            return parseInt(parts[1]);
+        }
+    }
+
     componentDidMount() {
         this.fetchYears();
+        this.state.selectedYear = this.getRoutedYear(this.props.location.pathname);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.location.pathname != this.props.location.pathname) {
+            this.state.selectedYear = this.getRoutedYear(nextProps.location.pathname);
+        }
     }
 
     render() {
         const classes = this.props.classes;
-
         return (
-            <AppBar position="static">
             <AppBar position="fixed">
                 <Toolbar>
                     <PhotoIcon className={classes.icon} />
-                    <List className={classes.noFlex}>
+                    <List className={classes.selector}>
                         <ListItem
                             button
                             aria-haspopup="true"
                             aria-label="Choose Year"
                             onClick={this.requestYearsMenuOpen}
                         >
-                            <ListItemText primary="Overview" />
+                            <ListItemText
+                                disableTypography
+                                primary={
+                                    <Typography
+                                        type="title"
+                                        color="inherit"
+                                    >
+                                        {this.state.selectedYear == 0 ? "Overview" : this.state.selectedYear}
+                                    </Typography>
+                                }
+                                />
                             <KeyboardArrowDownIcon />
                         </ListItem>
                     </List>
@@ -122,11 +158,11 @@ class PhotosAppBar extends React.Component {
                         Overview
                     </MenuItem>
 
-                    {this.state.years.reverse().map((year, index) =>
+                    {this.state.years.slice(0).reverse().map((year, index) =>
                         <MenuItem
-                            key={index}
+                            key={year.year}
                             selected={this.state.selectedYear == year.year}
-                            onClick={event => this.switchYear(year.year, 0)}
+                            onClick={event => this.switchYear(event, year.year)}
                         >
                             {year.year}
                         </MenuItem>
@@ -145,4 +181,4 @@ class PhotosAppBar extends React.Component {
     }
 }
 
-export default withStyles(styleSheet)(PhotosAppBar);
+export default withStyles(styleSheet)(withRouter(PhotosAppBar));
