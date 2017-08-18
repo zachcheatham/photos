@@ -83,6 +83,7 @@ class PhotosAppBar extends React.Component {
 
         return (
             <AppBar position="static">
+            <AppBar position="fixed">
                 <Toolbar>
                     <PhotoIcon className={classes.icon} />
                     <List className={classes.noFlex}>
