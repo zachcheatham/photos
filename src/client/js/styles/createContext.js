@@ -5,18 +5,19 @@ import preset from 'jss-preset-default';
 import { SheetsRegistry } from 'react-jss';
 import createPalette from 'material-ui/styles/palette';
 import createMuiTheme from 'material-ui/styles/theme';
-import {amber, blue} from 'material-ui/colors';
+import {grey, blue} from 'material-ui/colors';
 import createGenerateClassName from 'material-ui/styles/createGenerateClassName';
 
 const theme = createMuiTheme({
     palette: createPalette({
-        primary: amber,
+        primary: grey,
         accent: blue
     }),
     overrides: {
         MuiAppBar: {
             colorPrimary: {
-                backgroundColor: amber["A100"]
+                backgroundColor: grey[900],
+                color: "#fff"
             }
         }
     }
