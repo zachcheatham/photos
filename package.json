@@ -4,7 +4,7 @@
   "description": "A Simple Photo/Video Viewer",
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server --content-base static --inline --hot"
+    "dev": "webpack-dev-server",
   },
   "author": "Zach Cheatham",
   "license": "ISC",
