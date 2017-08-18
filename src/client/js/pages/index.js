@@ -11,6 +11,8 @@ import PhotosAppBar from "../components/PhotosAppBar"
 import withRoot from '../components/withRoot';
 
 import AlbumList from "../pages/AlbumList";
+import Overview from "../pages/Overview";
+
 const styleSheet = createStyleSheet((theme) => ({
     flexRoot: {
         display: "flex",
@@ -42,6 +44,7 @@ class Index extends React.Component {
                         requestIndexManagerOpen={this.requestIndexManagerOpen}
                     />
                     <Switch>
+                        <Route exact path="/" component={Overview} />
                         <Route exact path="/:year" component={AlbumList} />
                     </Switch>
                     <Footer />
