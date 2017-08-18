@@ -13,6 +13,7 @@ app.use("/api/years", require("./routes/years"));
 app.use("/api/albums", require("./routes/albums"));
 app.use("/api/photos", require("./routes/photos"));
 app.use("/api/update-index", require("./routes/update-index"));
+app.use("/api/thumbnail", require("./routes/thumbnail"));
 
 app.listen(PORT, (err) => {
     if (err)
