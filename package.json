@@ -5,6 +5,7 @@
   "scripts": {
     "build": "webpack",
     "dev": "webpack-dev-server",
+    "devServer": "forever --watch --watchDirectory ./src/server/ ./src/server/app.js"
   },
   "author": "Zach Cheatham",
   "license": "ISC",
