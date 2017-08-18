@@ -11,6 +11,7 @@ import PhotosAppBar from "../components/PhotosAppBar"
 import withRoot from '../components/withRoot';
 
 import AlbumList from "../pages/AlbumList";
+import Album from "../pages/Album";
 import NotFound from "../pages/NotFound";
 import Overview from "../pages/Overview";
 
@@ -47,6 +48,7 @@ class Index extends React.Component {
                     <Switch>
                         <Route exact path="/" component={Overview} />
                         <Route exact path="/:year" component={AlbumList} />
+                        <Route exact path="/:year/:album/:photo?" component={Album} />
                         <Route exact path="*" component={NotFound} />
                     </Switch>
                     <Footer />

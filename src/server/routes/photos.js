@@ -99,21 +99,49 @@ router.get("/:year/:album", function(req, res) {
                     });
                 }
                 else {
-                    req.db.query("SELECT `filename`, `time_taken` FROM `photos` WHERE `year` = ? AND `album` = ? ORDER BY `time_taken` ASC", [year, album], function(error, results, fields) {
-                        if (error) {
-                            res.statusCode = 500;
-                            res.json({
-                                "success": false,
-                                "year": year,
-                                "album": album,
-                                "error": "database_error",
-                                "error_extra": error.code
-                            });
+                    req.db.query(`
+                        SELECT
+                            \`filename\`,
+                            \`timestamp\`,
+                            \`suspect_time\`,
+                            \`length\`,
+                            \`type\`
+                        FROM
+                        (
+                            SELECT
+                                \`filename\`,
+                                \`timestamp\`,
+                                \`suspect_time\`,
+                                \`length\`,
+                                "video" as \`type\`
+                            FROM \`videos\` WHERE \`album\` = ? AND \`year\` = ?
+                            UNION ALL
+                            SELECT
+                                \`filename\`,
+                                \`timestamp\`,
+                                \`suspect_time\`,
+                                NULL as \`length\`,
+                                "photo" as \`type\`
+                            FROM \`photos\` WHERE \`album\` = ? AND \`year\` = ?
+                        ) \`media\`
+                        ORDER BY \`timestamp\` ASC`,
+                        [album, year, album, year],
+                        function(error, results, fields) {
+                            if (error) {
+                                res.statusCode = 500;
+                                res.json({
+                                    "success": false,
+                                    "year": year,
+                                    "album": album,
+                                    "error": "database_error",
+                                    "error_extra": error.code
+                                });
+                            }
+                            else {
+                                res.json({"success": true, "year": year, "album": album, "photos": results});
+                            }
                         }
-                        else {
-                            res.json({"success": true, "year": year, "album": album, "photos": results});
-                        }
-                    });
+                    );
                 }
             }
         });

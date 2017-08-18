@@ -108,7 +108,7 @@ function updateStats() {
 
     for (var i = 0; i < modifiedYears.length; i++) {
         var queryString = `
-            REPLACE INTO \`years\`(\`year\`, \`albums\`, \`photos\`, \`videos\`)
+            REPLACE INTO \`years\` (\`year\`, \`albums\`, \`photos\`, \`videos\`)
             SELECT
                 ?,
                 (SELECT COUNT(*) FROM \`albums\` WHERE \`year\` = ?),
