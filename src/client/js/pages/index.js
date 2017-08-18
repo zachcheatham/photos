@@ -11,6 +11,7 @@ import PhotosAppBar from "../components/PhotosAppBar"
 import withRoot from '../components/withRoot';
 
 import AlbumList from "../pages/AlbumList";
+import NotFound from "../pages/NotFound";
 import Overview from "../pages/Overview";
 
 const styleSheet = createStyleSheet((theme) => ({
@@ -46,6 +47,7 @@ class Index extends React.Component {
                     <Switch>
                         <Route exact path="/" component={Overview} />
                         <Route exact path="/:year" component={AlbumList} />
+                        <Route exact path="*" component={NotFound} />
                     </Switch>
                     <Footer />
 
