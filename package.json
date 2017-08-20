@@ -4,7 +4,7 @@
   "description": "A Simple Photo/Video Viewer",
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server",
+    "dev": "webpack-dev-server --content-base static --inline --hot --host 0.0.0.0 --public 192.168.1.6:8080",
     "devServer": "forever --watch --watchDirectory ./src/server/ ./src/server/app.js"
   },
   "author": "Zach Cheatham",

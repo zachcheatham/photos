@@ -24,7 +24,7 @@ if (!debug) {
     )
 
     jsEntry.unshift(
-        'webpack-dev-server/client?http://localhost:3000',
+        'webpack-dev-server/client?http://localhost:8080',
         'webpack/hot/only-dev-server'
     );
 }
@@ -68,12 +68,6 @@ module.exports = {
     },
     plugins: plugins,
     devServer: {
-        inline: true,
-        hot: true,
-        contentBase: "static",
-        host: "0.0.0.0",
-        public: "192.168.1.6:8080",
-
         historyApiFallback: {
             disableDotRule: true
         }
