@@ -1,6 +1,8 @@
 const constants = require("../helpers/constants.js");
 import React from 'react';
 
+import ResizeAware from "react-resize-aware";
+
 import AppBar from "material-ui/AppBar";
 import IconButton from "material-ui/IconButton";
 import { withStyles, createStyleSheet } from "material-ui/styles";
@@ -42,9 +44,16 @@ const styleSheet = createStyleSheet((theme) => ({
         visibility: "hidden",
         transition: "opacity linear 0.5s, visibility linear 0.5s",
     },
+    imageContainer: {
+        //border: "1px solid red",
+        position: "absolute",
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
     image: {
-        visibility: "hidden",
-        position: "relative",
+        visibility: "hidden"
     }
 }));
 
@@ -54,7 +63,6 @@ class PhotoViewer extends React.Component {
     state = {
         inactive: false,
         imageLoaded: false,
-        infoLoaded: true, //TODO: change to false after writing net code
         zoomed: false,
     }
 
@@ -64,7 +72,13 @@ class PhotoViewer extends React.Component {
         }, 3000);
     }
 
-    onWindowMouseMove = () => {
+    onResize = () => {
+        if (this.state.imageLoaded && this.props.info) {
+            this.layoutImage();
+        }
+    }
+
+    onWindowMouseMove = (event) => {
         if (this.hideToolbarTimeout) {
             clearTimeout(this.hideToolbarTimeout);
         }
@@ -73,35 +87,44 @@ class PhotoViewer extends React.Component {
             this.setState({inactive: true})
         }, 3000);
 
-        this.setState({inactive: false})
+        if (this.state.inactive) {
+            this.setState({inactive: false});
+        }
+
+        console.log(event);
     }
 
     photoMetrics = {
         originalWidth: 0,
         originalHeight: 0,
+        aspect: 0,
         rotation: 0,
-        rotatedWidthFactor: 0,
-        rotatedHeightFactor: 0,
-        aspectRatio: 0,
+        rotatedHeight: 0,
+        rotatedWidth: 0,
+        scaleWidth: 0,
+        scaleHeight: 0,
+        scaledHeight: 0,
+        scaledWidth: 0,
+        scaledRotatedHeight: 0,
+        scaledRotatedWidth: 0,
         zoom: 1.0,
     }
 
     onImageLoaded = (event) => {
-        this.photoMetrics.originalWidth = event.target.width;
-        this.photoMetrics.originalHeight = event.target.height;
-
-        // Calculate rotation size
-        this.rotateImage(this.photoMetrics.rotation);
-
-        // Zoom image to fit in window
-        this.zoomImage(this.photoMetrics.zoom);
+        this.photoMetrics.originalWidth = event.target.naturalWidth;
+        this.photoMetrics.originalHeight = event.target.naturalHeight;
 
         this.setState({imageLoaded: true});
 
-        if (this.state.infoLoaded) {
-            const element = this.refs.image;
-            element.style["visibility"] = "visible";
-            //element.style["transition"] = "all 0.5s ease";
+        if (this.props.info) {
+            this.rotateImage(this.photoMetrics.rotation, false, false);
+            this.layoutImage();
+
+            setTimeout(() => {
+                this.refs.image.style["visibility"] = "visible";
+                this.refs.image.style["transition"] = "all 0.1s linear, transform 0.5s ease";
+                this.refs.imageContainer.style["transition"] = "all 0.1s linear";
+            }, 1);
         }
     }
 
@@ -120,134 +143,164 @@ class PhotoViewer extends React.Component {
         }
     }
 
-    rotateImage = (deg, save=true) => {
+    layoutImage = () => {
+        const root = this.refs.root.container;
+        const container = this.refs.imageContainer;
+        const image = this.refs.image;
+
+        // Scale image to window
+        if (root.clientWidth / this.photoMetrics.aspect <= root.clientHeight) {
+            this.photoMetrics.scaledRotatedWidth = root.clientWidth;
+            this.photoMetrics.scaledRotatedHeight = root.clientWidth / this.photoMetrics.aspect;
+        }
+        else {
+            this.photoMetrics.scaledRotatedWidth = root.clientHeight * this.photoMetrics.aspect;
+            this.photoMetrics.scaledRotatedHeight = root.clientHeight;
+        }
+
+        // Adjust for zoom
+        if (this.photoMetrics.zoom > 1.0) {
+            this.photoMetrics.scaledRotatedWidth *= this.photoMetrics.zoom;
+            this.photoMetrics.scaledRotatedHeight *= this.photoMetrics.zoom;
+        }
+
+        this.photoMetrics.scaleWidth = this.photoMetrics.scaledRotatedWidth / this.photoMetrics.rotatedWidth;
+        this.photoMetrics.scaleHeight = this.photoMetrics.scaledRotatedHeight / this.photoMetrics.rotatedHeight;
+
+        // Calculate inner image dimensions to fit in the box
+        if (this.photoMetrics.rotation == 0) {
+            this.photoMetrics.scaledWidth = this.photoMetrics.scaledRotatedWidth;
+            this.photoMetrics.scaledHeight = this.photoMetrics.scaledRotatedHeight;
+        }
+        else {
+            // TODO: If you want rotation to be compat with anything other than 90 deg rotations, this has to be updated
+            this.photoMetrics.scaledWidth = this.photoMetrics.originalWidth * this.photoMetrics.scaleWidth;
+            this.photoMetrics.scaledHeight = this.photoMetrics.originalHeight * this.photoMetrics.scaleHeight;
+        }
+
+        if (this.photoMetrics.zoom == 1.0) {
+            // Center
+            this.photoMetrics.x = (root.clientWidth / 2 - this.photoMetrics.scaledRotatedWidth / 2);
+            this.photoMetrics.y = (root.clientHeight / 2 - this.photoMetrics.scaledRotatedHeight / 2);
+        }
+
+        container.style["width"] = this.photoMetrics.scaledRotatedWidth + "px";
+        container.style["height"] = this.photoMetrics.scaledRotatedHeight + "px";
+        container.style["left"] = this.photoMetrics.x + "px";
+        container.style["top"] = this.photoMetrics.y + "px";
+
+        image.style["width"] = this.photoMetrics.scaledWidth + "px";
+        image.style["height"] = this.photoMetrics.scaledHeight + "px";
+        image.style["transform"] = `rotate(${this.photoMetrics.rotation}deg)`;
+    }
+
+    rotateImage = (deg, layout=true, save=true) => {
         if (deg >= 360)
             deg = 0;
+        //else
+            //deg = Math.round(deg / 90) * 90;
 
         this.photoMetrics.rotation = deg;
 
-        const element = this.refs.image;
-        var rotatedWidth;
-        var rotatedHeight;
-
         if (deg == 0) {
-            rotatedWidth = this.photoMetrics.originalWidth;
-            rotatedHeight = this.photoMetrics.originalHeight;
-
-            if (this.photoMetrics.zoom == 1) {
-                element.style["transform"] = "translateY(-50%) translateX(-50%)";
-            }
-            else {
-                element.style["transform"] = undefined;
-            }
+            this.photoMetrics.rotatedWidth = this.photoMetrics.originalWidth;
+            this.photoMetrics.rotatedHeight = this.photoMetrics.originalHeight;
         }
         else {
             const rad = deg * Math.PI / 180;
-            rotatedWidth = Math.abs(this.photoMetrics.originalWidth * Math.cos(rad)) + Math.abs(this.photoMetrics.originalHeight * Math.sin(rad));
-            rotatedHeight = Math.abs(this.photoMetrics.originalWidth * Math.sin(rad)) + Math.abs(this.photoMetrics.originalHeight * Math.cos(rad));
+            this.photoMetrics.rotatedWidth = Math.abs(this.photoMetrics.originalWidth * Math.cos(rad)) + Math.abs(this.photoMetrics.originalHeight * Math.sin(rad));
+            this.photoMetrics.rotatedHeight = Math.abs(this.photoMetrics.originalWidth * Math.sin(rad)) + Math.abs(this.photoMetrics.originalHeight * Math.cos(rad));        }
 
-            if (this.photoMetrics.zoom == 1) {
-                element.style["transform"] = "translateY(-50%) translateX(-50%) rotate(" + deg + "deg)";
-            }
-            else {
-                element.style["transform"] = "rotate(" + deg + "deg)";
-            }
+        this.photoMetrics.aspect = this.photoMetrics.rotatedWidth / this.photoMetrics.rotatedHeight;
+
+        if (layout) {
+            this.layoutImage();
         }
-
-        this.photoMetrics.rotatedWidthFactor = rotatedWidth / this.photoMetrics.originalWidth;
-        this.photoMetrics.rotatedHeightFactor = rotatedHeight / this.photoMetrics.originalHeight;
-        this.photoMetrics.aspectRatio = rotatedWidth / rotatedHeight;
-
-        // Update max width/height
-        element.style["max-width"] = (100 * this.photoMetrics.zoom * this.photoMetrics.rotatedHeightFactor) + "%";
-        element.style["max-height"] = (100 * this.photoMetrics.zoom * this.photoMetrics.rotatedWidthFactor) + "%";
 
         if (save) {
             // TODO: Send rotation to api
         }
     }
 
-    zoomImage = (zoom, event=false) => {
+    zoomImage = (zoom, event=false, ) => {
         if (zoom < 1.0) {
             zoom = 1.0;
         }
 
-        const element = this.refs.image;
-
-        if (zoom == 1.0) {
-            element.style["position"] = "relative";
-            element.style["max-width"] = (100 * this.photoMetrics.rotatedHeightFactor) + "%";
-            element.style["max-height"] = (100 * this.photoMetrics.rotatedWidthFactor) + "%";
-            element.style["top"] = "50%";
-            element.style["left"] = "50%";
-
-            if (this.photoMetrics.rotation != 0) {
-                element.style["transform"] = "translateY(-50%) translateX(-50%) rotate(" + this.photoMetrics.rotation + "deg)";
-            }
-            else {
-                element.style["transform"] = "translateY(-50%) translateX(-50%)";
-            }
-
-            this.photoMetrics.width = 0;
-            this.photoMetrics.height = 0;
-        }
-        else {
-            const zoomFactor = zoom / this.photoMetrics.zoom;
-
-            var x = event.nativeEvent.offsetX;
-            var y = event.nativeEvent.offsetY;
-            var w = element.width;
-            var h = element.height;
-            var rw = w;
-            var rh = h;
-
-            if (this.photoMetrics.rotation > -1) {
-                const rad = this.photoMetrics.rotation * Math.PI / 180;
-                const sin = Math.sin(rad);
-                const cos = Math.cos(rad);
-
-                rw = Math.abs(w * cos) + Math.abs(h * sin);
-                rh = Math.abs(w * sin) + Math.abs(h * cos);
-
-                const ox = rw / 2;
-                const oy = rh / 2;
-
-                const cx = cos * (x - ox) - sin * (y - oy) + ox;
-                const cy = sin * (x - ox) + cos * (y - oy) + oy
-
-                x = cx;
-                y = cy;
-            }
-
-            var fL = (w - rw) / 4;
-            console.log(fL);
-
-            element.style["position"] = "absolute";
-            element.style["left"] = (event.pageX - x + fL) + "px";
-            //element.style["top"] = (event.pageY - y) - ((w - h) / 2) + "px";
-            element.style["max-width"] = (100 * this.photoMetrics.rotatedHeightFactor) + "%";
-            element.style["max-height"] = (100 * this.photoMetrics.rotatedWidthFactor) + "%";
-
-            if (this.photoMetrics.rotation != 0) {
-                element.style["transform"] = `
-                    rotate(${this.photoMetrics.rotation}deg)`;
-            }
-            else {
-                element.style["transform"] = "";
-            }
-        }
+        const lastZoom = this.photoMetrics.zoom;
 
         if (this.photoMetrics.zoom != zoom) {
             this.setState({zoomed: (zoom > 1)})
         }
-        this.photoMetrics.zoom = zoom;
+
+        if (zoom > 1) {
+            const magnitude = zoom / lastZoom;
+
+            const scaledWidth = this.photoMetrics.scaledWidth * magnitude;
+            const scaledHeight = this.photoMetrics.scaledHeight * magnitude;
+
+            if (
+                scaledWidth > this.photoMetrics.originalWidth ||
+                scaledHeight > this.photoMetrics.originalHeight
+            ) {
+                return;
+            }
+
+            this.photoMetrics.zoom = zoom;
+            this.photoMetrics.scaledWidth = scaledWidth;
+            this.photoMetrics.scaledHeight = scaledHeight;
+            this.photoMetrics.scaledRotatedWidth *= magnitude;
+            this.photoMetrics.scaledRotatedHeight *= magnitude;
+
+            const container = this.refs.imageContainer;
+            const image = this.refs.image;
+
+            container.style["width"] = this.photoMetrics.scaledRotatedWidth + "px";
+            container.style["height"] = this.photoMetrics.scaledRotatedHeight + "px";
+            image.style["width"] = this.photoMetrics.scaledWidth + "px";
+            image.style["height"] = this.photoMetrics.scaledHeight + "px";
+
+            var x = 0;
+            var y = 0;
+            var px = 0;
+            var py = 0;
+
+            if (event) {
+                px = event.nativeEvent.pageX;
+                py = event.nativeEvent.pageY;
+
+                x = px - this.photoMetrics.x;
+                y = py - this.photoMetrics.y;
+            }
+            else {
+                const root = this.refs.root.container;
+
+                x = container.clientWidth / 2;
+                y = container.clientHeight / 2;
+                px = root.clientWidth / 2;
+                py = root.clientHeight / 2;
+            }
+
+            this.photoMetrics.x = px - (x * magnitude);
+            this.photoMetrics.y = py - (y * magnitude);
+
+            container.style["left"] = this.photoMetrics.x + "px";
+            container.style["top"] = this.photoMetrics.y + "px";
+        }
+        else {
+            this.photoMetrics.zoom = zoom;
+            this.layoutImage();
+        }
     }
 
     render() {
         const classes = this.props.classes;
 
         return (
-            <div
+            <ResizeAware
+                onlyEvent
+                onResize={this.onResize}
+                ref="root"
                 className={`${this.props.className} ${classes.main}`}
                 onMouseMove={this.onWindowMouseMove}
             >
@@ -274,7 +327,7 @@ class PhotoViewer extends React.Component {
                         :
                             ""
                         }
-                        {this.state.imageLoaded && this.state.infoLoaded ?
+                        {this.state.imageLoaded && this.props.info ?
                             <IconButton
                                 color="inherit"
                                 onClick={() => this.rotateImage(this.photoMetrics.rotation + 90, true)}
@@ -287,7 +340,7 @@ class PhotoViewer extends React.Component {
                         <IconButton color="inherit">
                             <FileDownloadIcon />
                         </IconButton>
-                        {this.state.infoLoaded ?
+                        {this.props.info ?
                             <IconButton
                                 color="inherit"
                                 onClick={this.props.requestInfoToggle}
@@ -300,18 +353,23 @@ class PhotoViewer extends React.Component {
                     </Toolbar>
                 </div>
 
-                {this.props.filename && this.props.filename.length > 0 ?
-                    <img
-                        className={classes.image}
-                        ref="image"
-                        onLoad={this.onImageLoaded}
-                        onWheel={this.onWheel}
-                        src={`${constants.API_URL}/media/${this.props.filename}`}
-                    />
-                :
-                    ""
-                }
-            </div>
+                <div
+                    className={classes.imageContainer}
+                    onWheel={this.onWheel}
+                    ref="imageContainer"
+                >
+                    {this.props.filename && this.props.filename.length > 0 ?
+                        <img
+                            className={classes.image}
+                            ref="image"
+                            onLoad={this.onImageLoaded}
+                            src={`${constants.API_URL}/media/${this.props.filename}`}
+                        />
+                    :
+                        ""
+                    }
+                </div>
+            </ResizeAware>
         )
     }
 }

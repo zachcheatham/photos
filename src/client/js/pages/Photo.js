@@ -59,6 +59,7 @@ class Photo extends React.Component {
                         className={classes.photoContainer}
                         requestInfoToggle={this.requestInfoToggle}
                         filename={this.props.filename}
+                        info={{}}
                     />
                     <div className={this.state.showInfo ? classes.info : classes.hiddenInfo}>
                         <div className={classes.innerInfo}>
