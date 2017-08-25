@@ -1,4 +1,5 @@
 import React from 'react';
+import { withRouter } from "react-router-dom"
 
 import Modal from "material-ui/internal/Modal";
 import { withStyles, createStyleSheet } from "material-ui/styles";
@@ -46,6 +47,10 @@ class Photo extends React.Component {
         this.setState({showInfo: !this.state.showInfo});
     }
 
+    requestBack = () => {
+        this.props.history.goBack();
+    }
+
     render() {
         const classes = this.props.classes;
 
@@ -58,6 +63,7 @@ class Photo extends React.Component {
                     <PhotoViewer
                         className={classes.photoContainer}
                         requestInfoToggle={this.requestInfoToggle}
+                        requestBack={this.requestBack}
                         filename={this.props.filename}
                         info={{}}
                     />
@@ -72,4 +78,4 @@ class Photo extends React.Component {
     }
 }
 
-export default withStyles(styleSheet) (Photo);
+export default withStyles(styleSheet) (withRouter(Photo));
