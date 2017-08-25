@@ -188,20 +188,68 @@ function processPhoto(photo) {
                         console.log(error);
                     }
 
-                    db.query("INSERT INTO `photos` VALUES(?, ?, ?, ?, ?, ?, ?)", [
+                    db.query(`
+                        INSERT INTO \`photos\`
+                        (
+                            \`filename\`,
+                            \`album\`,
+                            \`year\`,
+                            \`timestamp\`,
+                            \`suspect_time\`,
+                            \`rotation\`,
+                            \`width\`,
+                            \`height\`
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [
                             photo.filename,
                             photo.album,
                             photo.year,
                             photo.getTimestamp(recordError),
                             photo.suspectTime,
                             photo.getRotation(),
-                            null
+                            photo.getWidth(),
+                            photo.getHeight(),
                         ], function(error, results, fields) {
                             if (error) {
                                 recordError('w', "Error saving " + photo.path + " to database: " + error);
                             }
                         }
                     );
+
+                    const stat = fs.statSync(photo.path)
+
+                    db.query(`
+                        INSERT INTO \`photos_metadata\`
+                        (
+                            \`filename\`,
+                            \`make\`,
+                            \`model\`,
+                            \`lens_model\`,
+                            \`filesize\`,
+                            \`fnumber\`,
+                            \`exposure_time\`,
+                            \`focal_length\`,
+                            \`iso\`,
+                            \`latitude\`,
+                            \`longitude\`,
+                            \`direction\`
+                        )
+                        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [
+                            photo.filename,
+                            photo.getMake(),
+                            photo.getModel(),
+                            photo.getLensModel(),
+                            photo.getFilesize(),
+                            photo.getFNumber(),
+                            photo.getExposureTime(),
+                            photo.getFocalLength(),
+                            photo.getISO(),
+                            photo.getGPSLatitude(),
+                            photo.getGPSLongitude(),
+                            photo.getGPSDirection(),
+                        ])
 
                     if (!modifiedAlbums.indexOf(photo.year + "/" + photo.album) > -1) {
                         modifiedAlbums.push(photo.year + "/" + photo.album);

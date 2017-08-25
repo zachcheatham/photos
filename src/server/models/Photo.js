@@ -1,3 +1,4 @@
+const fs = require("fs");
 const mime = require("mime");
 const ExifImage = require("exif").ExifImage
 
@@ -10,6 +11,23 @@ function Photo(path) {
     this.album = folders[folders.length-2];
     this.year = parseInt(folders[folders.length-3]);
     this.suspectTime = false;
+}
+
+methods.getFilesize = function() {
+    const stat = fs.statSync(this.path);
+    return stat["size"];
+}
+
+methods.hasValidExtension = function() {
+    return mime.lookup(this.filename).startsWith("image/");
+}
+
+methods.readExif = function(callback) {
+    var self = this;
+    new ExifImage({image: this.path}, function(error, exifData) {
+        self.exifData = exifData;
+        callback(error);
+    });
 }
 
 function timestampFromFileName(filename) {
@@ -44,10 +62,6 @@ function timestampFromFileName(filename) {
     else {
         return false;
     }
-}
-
-methods.hasValidExtension = function() {
-    return mime.lookup(this.filename).startsWith("image/");
 }
 
 methods.getTimestamp = function(errorCallback, useExif=true) {
@@ -111,12 +125,187 @@ methods.getRotation = function() {
     return 0;
 }
 
-methods.readExif = function(callback) {
-    var self = this;
-    new ExifImage({image: this.path}, function(error, exifData) {
-        self.exifData = exifData;
-        callback(error);
-    });
+methods.getMake = function() {
+    if (
+        this.exifData &&
+        this.exifData.image &&
+        this.exifData.image.Make
+    ) {
+        return this.exifData.image.Make;
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getModel = function() {
+    if (
+        this.exifData &&
+        this.exifData.image &&
+        this.exifData.image.Model
+    ) {
+        return this.exifData.image.Model;
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getLensModel = function() {
+    if (
+        this.exifData &&
+        this.exifData.exif &&
+        this.exifData.exif.LensModel
+    ) {
+        return this.exifData.exif.LensModel
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getFNumber = function() {
+    if (
+        this.exifData &&
+        this.exifData.exif &&
+        this.exifData.exif.FNumber
+    ) {
+        return this.exifData.exif.FNumber
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getExposureTime = function() {
+    if (
+        this.exifData &&
+        this.exifData.exif &&
+        this.exifData.exif.ExposureTime
+    ) {
+        return this.exifData.exif.ExposureTime
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getFocalLength = function() {
+    if (
+        this.exifData &&
+        this.exifData.exif &&
+        this.exifData.exif.FocalLength
+    ) {
+        return this.exifData.exif.FocalLength
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getISO = function() {
+    if (
+        this.exifData &&
+        this.exifData.exif &&
+        this.exifData.exif.ISO
+    ) {
+        return this.exifData.exif.ISO
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getGPSLatitude = function() {
+    if (
+        this.exifData &&
+        this.exifData.gps &&
+        this.exifData.gps.GPSLatitude
+    ) {
+        var direction = 0;
+        if (this.exifData.gps.GPSLatitudeRef == 'N') {
+            direction = 1;
+        }
+        else if (this.exifData.gps.GPSLatitudeRef == 'S') {
+            direction = -1;
+        }
+
+        return (
+            (
+                this.exifData.gps.GPSLatitude[0] +
+                this.exifData.gps.GPSLatitude[1] / 60 +
+                this.exifData.gps.GPSLatitude[2] / 3600
+            ) *
+            direction
+        );
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getGPSLongitude = function() {
+    if (
+        this.exifData &&
+        this.exifData.gps &&
+        this.exifData.gps.GPSLongitude
+    ) {
+        var direction = 0;
+        if (this.exifData.gps.GPSLongitudeRef == 'E') {
+            direction = 1;
+        }
+        else if (this.exifData.gps.GPSLongitudeRef == 'W') {
+            direction = -1;
+        }
+
+        return (
+            (
+                this.exifData.gps.GPSLongitude[0] +
+                this.exifData.gps.GPSLongitude[1] / 60 +
+                this.exifData.gps.GPSLongitude[2] / 3600
+            ) *
+            direction
+        );
+    }
+    else {
+        return null;
+    }
+}
+
+methods.getGPSDirection = function() {
+    if (
+        this.exifData &&
+        this.exifData.gps &&
+        this.exifData.gps.GPSImgDirection
+    ) {
+        return this.exifData.gps.GPSImgDirection;
+    }
+}
+
+methods.getWidth = function() {
+    if (
+        this.exifData &&
+        this.exifData.exif &&
+        this.exifData.exif.ExifImageWidth
+    ) {
+        return this.exifData.exif.ExifImageWidth;
+    }
+    else {
+        return 0;
+    }
+}
+
+methods.getHeight = function() {
+    if (
+        this.exifData &&
+        this.exifData.exif &&
+        this.exifData.exif.ExifImageHeight
+    ) {
+        return this.exifData.exif.ExifImageHeight;
+    }
+    else {
+        return 0;
+    }
 }
 
 module.exports = Photo;
