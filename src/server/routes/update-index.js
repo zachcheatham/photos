@@ -159,14 +159,10 @@ function nextFile() {
     }
     else {
         processingFiles = false;
-
-        // We're not looking through directories still, safe to it quits
-        if (directoryProcesses == 0) {
-            if (mode == MODE_PHOTOS)
-                photosFinished();
-            else if (mode == MODE_VIDEOS)
-                videosFinished();
-        }
+        if (mode == MODE_PHOTOS)
+            photosFinished();
+        else if (mode == MODE_VIDEOS)
+            videosFinished();
     }
 }
 
@@ -299,19 +295,11 @@ function readFolder(directory, level=0) {
 
                         if (obj.hasValidExtension()) {
                             pendingFiles.push(obj);
-
-                            // Start the file processer
                             if (mode == MODE_PHOTOS) {
                                 totalPhotos++;
-                                if (!processingFiles) {
-                                    processPhoto(pendingFiles[0]);
-                                }
                             }
                             else if (mode == MODE_VIDEOS) {
                                 totalVideos++;
-                                if (!processingFiles) {
-                                    processVideo(pendingFiles[0]);
-                                }
                             }
                         }
                         else {
@@ -336,6 +324,15 @@ function readFolder(directory, level=0) {
                 }
                 else if (mode == MODE_VIDEOS) {
                     videosFinished();
+                }
+            }
+            else {
+                // Start the file processer
+                if (mode == MODE_PHOTOS) {
+                    processPhoto(pendingFiles[0]);
+                }
+                else if (mode == MODE_VIDEOS) {
+                    processVideo(pendingFiles[0]);
                 }
             }
         }
