@@ -89,9 +89,9 @@ function updateStats() {
                 MAX(\`timestamp\`)
             FROM
                 (
-                    SELECT \`filename\`, \`album\`, \`year\`, \`timestamp\` FROM \`videos\` WHERE \`album\` = ? AND \`year\` = ?
+                    SELECT \`filename\`, \`album\`, \`year\`, \`timestamp\` FROM \`videos\` WHERE \`album\` = ? AND \`year\` = ? AND \`suspect_time\` = 0
                     UNION ALL
-                    SELECT \`filename\`, \`album\`, \`year\`, \`timestamp\` FROM \`photos\` WHERE \`album\` = ? AND \`year\` = ?
+                    SELECT \`filename\`, \`album\`, \`year\`, \`timestamp\` FROM \`photos\` WHERE \`album\` = ? AND \`year\` = ? AND \`suspect_time\` = 0
                 ) \`media\`
         `;
 
