@@ -70,11 +70,36 @@ class PhotoViewer extends React.Component {
         this.hideToolbarTimeout = setTimeout(() => {
             this.setState({inactive: true})
         }, 3000);
+
+        this.reset();
+
+        if (this.refs.image.complete) {
+            this.onImageLoaded({target: this.refs.image});
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.hideToolbarTimeout) {
+            clearTimeout(this.hideToolbarTimeout);
+        }
+
+        if (this.transitionTimeout) {
+            clearTimeout(this.transitionTimeout);
+        }
     }
 
     onResize = () => {
         if (this.state.imageLoaded && this.props.info) {
+            if (this.transitionTimeout) {
+                clearTimeout(this.transitionTimeout);
+            }
+
+            this.setDisableTransitions(true);
             this.layoutImage();
+
+            this.transitionTimeout = setTimeout(() => {
+                this.setDisableTransitions(false);
+            }, 500);
         }
     }
 
@@ -85,29 +110,46 @@ class PhotoViewer extends React.Component {
 
         this.hideToolbarTimeout = setTimeout(() => {
             this.setState({inactive: true})
+            this.hideToolbarTimeout = undefined;
         }, 3000);
 
         if (this.state.inactive) {
             this.setState({inactive: false});
         }
 
-        console.log(event);
+        if (this.mouseDown && this.state.zoomed) {
+            this.photoMetrics.x += (event.pageX - this.prevMouseX);
+            this.photoMetrics.y += (event.pageY - this.prevMouseY);
+
+            // TODO: Prevent taking image off screen
+            this.refs.imageContainer.style["left"] = this.photoMetrics.x + "px";
+            this.refs.imageContainer.style["top"] = this.photoMetrics.y + "px";
+
+            this.prevMouseX = event.pageX;
+            this.prevMouseY = event.pageY;
+        }
     }
 
-    photoMetrics = {
-        originalWidth: 0,
-        originalHeight: 0,
-        aspect: 0,
-        rotation: 0,
-        rotatedHeight: 0,
-        rotatedWidth: 0,
-        scaleWidth: 0,
-        scaleHeight: 0,
-        scaledHeight: 0,
-        scaledWidth: 0,
-        scaledRotatedHeight: 0,
-        scaledRotatedWidth: 0,
-        zoom: 1.0,
+    onContainerMouseDown = (event) => {
+        if (this.state.zoomed) {
+            this.setDisableTransitions(true);
+
+            this.prevMouseX = event.pageX;
+            this.prevMouseY = event.pageY;
+
+            this.mouseDown = true;
+            event.preventDefault();
+        }
+    }
+
+    onContainerMouseUp = (event) => {
+        if (this.mouseDown) {
+            this.mouseDown = false;
+            this.prevMouseX = false;
+            this.prevMouseY = false;
+
+            this.setDisableTransitions(false);
+        }
     }
 
     onImageLoaded = (event) => {
@@ -122,8 +164,7 @@ class PhotoViewer extends React.Component {
 
             setTimeout(() => {
                 this.refs.image.style["visibility"] = "visible";
-                this.refs.image.style["transition"] = "all 0.1s linear, transform 0.5s ease";
-                this.refs.imageContainer.style["transition"] = "all 0.1s linear";
+                this.setDisableTransitions(false);
             }, 1);
         }
     }
@@ -141,6 +182,44 @@ class PhotoViewer extends React.Component {
                 event,
             );
         }
+    }
+
+    reset = () => {
+        this.photoMetrics = {
+            originalWidth: 0,
+            originalHeight: 0,
+            aspect: 0,
+            rotation: 0,
+            rotatedHeight: 0,
+            rotatedWidth: 0,
+            scaleWidth: 0,
+            scaleHeight: 0,
+            scaledHeight: 0,
+            scaledWidth: 0,
+            scaledRotatedHeight: 0,
+            scaledRotatedWidth: 0,
+            zoom: 1,
+            x: 0,
+            y: 0
+        }
+
+        this.state.imageLoaded = undefined;
+        this.state.inactive = undefined;
+        this.state.zoomed = undefined;
+
+        const container = this.refs.imageContainer;
+        const image = this.refs.image;
+
+        container.style["width"] = this.photoMetrics.scaledRotatedWidth + "px";
+        container.style["height"] = this.photoMetrics.scaledRotatedHeight + "px";
+        container.style["left"] = this.photoMetrics.x + "px";
+        container.style["top"] = this.photoMetrics.y + "px";
+        container.style["transition"] = "";
+
+        image.style["width"] = this.photoMetrics.scaledWidth + "px";
+        image.style["height"] = this.photoMetrics.scaledHeight + "px";
+        image.style["transform"] = `rotate(${this.photoMetrics.rotation}deg)`;
+        image.style["transition"] = "";
     }
 
     layoutImage = () => {
@@ -293,6 +372,17 @@ class PhotoViewer extends React.Component {
         }
     }
 
+    setDisableTransitions = (disabled) => {
+        if (disabled) {
+            this.refs.image.style["transition"] = "";
+            this.refs.imageContainer.style["transition"] = "";
+        }
+        else {
+            this.refs.image.style["transition"] = "all 0.1s linear, transform 0.5s ease";
+            this.refs.imageContainer.style["transition"] = "all 0.1s linear";
+        }
+    }
+
     render() {
         const classes = this.props.classes;
 
@@ -356,6 +446,8 @@ class PhotoViewer extends React.Component {
                 <div
                     className={classes.imageContainer}
                     onWheel={this.onWheel}
+                    onMouseDown={this.onContainerMouseDown}
+                    onMouseUp={this.onContainerMouseUp}
                     ref="imageContainer"
                 >
                     {this.props.filename && this.props.filename.length > 0 ?
