@@ -3,63 +3,28 @@ const router = require("express").Router();
 router.get("/:filename", function(req, res) {
     const filename = req.params.filename;
 
-    req.db.query("SELECT * FROM `photos` WHERE `filename` = ?", [filename], function(error, results, fields) {
-        if (error) {
-            res.statusCode = 500;
-            res.json({"success": false, "filename": filename, "error": "database_error", "error_extra": error});
-        }
-        else {
-            var exists = results.length > 0;
-            if (!exists) {
-                res.statusCode = 404;
-                res.json({"success": false, "filename": filename, "error": "not_found"});
+    req.db.query(`
+        SELECT * FROM \`photos\`
+        LEFT JOIN \`photos_metadata\` ON \`photos\`.\`filename\` = \`photos_metadata\`.\`filename\`
+        WHERE \`photos\`.\`filename\` = ?`,
+        [filename],
+        function(error, results, fields) {
+            if (error) {
+                res.statusCode = 500;
+                res.json({"success": false, "filename": filename, "error": "database_error", "error_extra": error});
             }
             else {
-                res.json({"success": true, "filename": filename, "photo": results[0]});
-            }
-        }
-    });
-});
-
-router.get("/:filename/exif", function(req, res) {
-    const ExifImage = require("exif").ExifImage;
-
-    const filename = req.params.filename;
-
-    req.db.query("SELECT * FROM `photos` WHERE `filename` = ?", [filename], function(error, results, fields) {
-        if (error) {
-            res.statusCode = 500;
-            res.json({"success": false, "filename": filename, "error": "database_error", "error_extra": error});
-        }
-        else {
-            var exists = results.length > 0;
-            if (!exists) {
-                res.statusCode = 404;
-                res.json({"success": false, "filename": filename, "error": "not_found"});
-            }
-            else {
-                var filePath = "./content/photos/" + results[0].year + "/" + results[0].album + "/" + results[0].filename;
-                console.log(filePath)
-
-                try {
-                    new ExifImage({image: filePath}, function(error, exifData) {
-                        if (error) {
-                            console.log(error);
-                            res.statusCode = 500;
-                            res.json({"success": false, "filename": filename, "error": "exif_error", "error_extra": error});
-                        }
-                        else {
-                            res.json({"success": true, "filename": filename, "exif_data": exifData});
-                        }
-                    });
+                var exists = results.length > 0;
+                if (!exists) {
+                    res.statusCode = 404;
+                    res.json({"success": false, "filename": filename, "error": "not_found"});
                 }
-                catch (error) {
-                    res.statusCode = 500;
-                    res.json({"success": false, "filename": filename, "error": "exif_error", "error_extra": error.message});
+                else {
+                    res.json({"success": true, "filename": filename, "photo": results[0]});
                 }
             }
         }
-    });
+    );
 });
 
 router.get("/:year/:album", function(req, res) {
