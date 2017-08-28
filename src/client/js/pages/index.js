@@ -1,14 +1,14 @@
-import React from 'react';
+import React from "react";
 
 import {Route, Switch} from "react-router-dom";
 import BrowserRouter from "react-router-dom/BrowserRouter";
 
-import { withStyles, createStyleSheet } from 'material-ui/styles';
+import { withStyles, createStyleSheet } from "material-ui/styles";
 
 import Footer from "../components/Footer"
 import IndexManager from "../components/IndexManager"
 import PhotosAppBar from "../components/PhotosAppBar"
-import withRoot from '../components/withRoot';
+import withRoot from "../components/withRoot";
 
 import AlbumList from "../pages/AlbumList";
 import Album from "../pages/Album";
