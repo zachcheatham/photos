@@ -8,12 +8,12 @@ import IconButton from "material-ui/IconButton";
 import { withStyles, createStyleSheet } from "material-ui/styles";
 import Toolbar from "material-ui/Toolbar";
 
-import ArrowBackIcon from "material-ui-icons/ArrowBack"
-import FileDownloadIcon from "material-ui-icons/FileDownload"
-import InfoIcon from "material-ui-icons/Info"
-import MoreVertIcon from "material-ui-icons/MoreVert"
-import RotateRightIcon from "material-ui-icons/RotateRight"
-import ZoomOutIcon from "material-ui-icons/ZoomOut"
+import ArrowBackIcon from "material-ui-icons/ArrowBack";
+import FileDownloadIcon from "material-ui-icons/FileDownload";
+import InfoIcon from "material-ui-icons/Info";
+import MoreVertIcon from "material-ui-icons/MoreVert";
+import RotateRightIcon from "material-ui-icons/RotateRight";
+import ZoomOutIcon from "material-ui-icons/ZoomOut";
 
 const styleSheet = createStyleSheet((theme) => ({
     main: {
@@ -75,6 +75,22 @@ class PhotoViewer extends React.Component {
 
         if (this.refs.image.complete) {
             this.onImageLoaded({target: this.refs.image});
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if ((!this.props.info && nextProps.info) || (this.props.info.filename != nextProps.info.filename)) {
+            this.photoMetrics.rotation = nextProps.info.rotation;
+
+            if (this.state.imageLoaded) {
+                this.rotateImage(this.photoMetrics.rotation, false, false);
+                this.layoutImage();
+
+                setTimeout(() => {
+                    this.refs.image.style["visibility"] = "visible";
+                    this.setDisableTransitions(false);
+                }, 1);
+            }
         }
     }
 
