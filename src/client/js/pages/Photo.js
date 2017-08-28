@@ -4,6 +4,7 @@ import React from 'react';
 import { withRouter } from "react-router-dom"
 
 import axios from "axios";
+import { Map, Marker, TileLayer } from "react-leaflet";
 
 import Avatar from "material-ui/Avatar";
 import Grid from "material-ui/Grid";
@@ -21,6 +22,7 @@ import ImageIcon from "material-ui-icons/Image"
 import InsertInvitationIcon from "material-ui-icons/InsertInvitation"
 import LensIcon from "material-ui-icons/Lens"
 import ModeEditIcon from "material-ui-icons/ModeEdit"
+import LocationOnIcon from "material-ui-icons/LocationOn"
 
 import moment from "moment-timezone";
 
@@ -40,7 +42,8 @@ const styleSheet = createStyleSheet((theme) => ({
         flexGrow: 0,
         flexShrink: 0,
         flexBasis: 360,
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
         transition: "flex-basis ease 0.25s"
     },
     hiddenInfo: {
@@ -62,7 +65,11 @@ const styleSheet = createStyleSheet((theme) => ({
     infoContent: theme.mixins.gutters({
         paddingTop: theme.spacing.unit * 2,
         paddingBottom: theme.spacing.unit * 2,
-    })
+    }),
+    map: {
+        width: 360,
+        height: 360
+    }
 }));
 
 var formatBytes = function(bytes, precision) {
@@ -85,11 +92,29 @@ class Photo extends React.Component {
                 this.setState({
                     info: response.data.photo
                 })
+
+                if (response.data.photo.latitude && !response.data.photo.geodecoded) {
+                    this.geodecode(response.data.photo.latitude, response.data.photo.longitude);
+                }
             })
             .catch((error) => {
                 // TODO: set some error variables
                 console.log(error);
             });
+    }
+
+    geodecode = (latitude, longitude) => {
+        axios.get(constants.API_URL + "/geodecode/" + latitude + "," + longitude)
+            .then((response) => {
+                console.log(response)
+                if (response.data.success) {
+                    const info = this.state.info;
+                    info["geodecoded"] = response.data.location;
+                    this.setState({
+                        info: info,
+                    });
+                }
+            })
     }
 
     requestInfoToggle = () => {
@@ -254,7 +279,32 @@ class Photo extends React.Component {
                                         />
                                     </ListItem>
                                 : ""}
+                                {this.state.info && this.state.info.latitude ?
+                                    <ListItem>
+                                        <ListItemIcon>
+                                            <LocationOnIcon />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={this.state.info.geodecoded ? this.state.info.geodecoded : "Locating..."}
+                                            secondary={(Math.round(this.state.info.latitude * 1000) / 1000) + ", " + (Math.round(this.state.info.longitude * 1000) / 1000)}
+                                            />
+                                    </ListItem>
+                                : ""}
                             </List>
+                            {this.state.info && this.state.info.latitude ?
+                                <Map
+                                    className={classes.map}
+                                    center={[this.state.info.latitude, this.state.info.longitude]}
+                                    zoom={16}
+                                    zoomControl={false}
+                                >
+                                    <TileLayer
+                                        url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+                                        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                                    />
+                                    <Marker position={[this.state.info.latitude, this.state.info.longitude]} />
+                                </Map>
+                            : ""}
                         </div>
                     </div>
                 </div>

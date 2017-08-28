@@ -35,8 +35,10 @@ module.exports = {
     entry: {
         js: ["./js/app"],
         vendor: [
+            "leaflet/dist/leaflet.css",
             "react",
             "react-dom",
+            "react-leaflet",
             "react-router-dom",
             "material-ui",
             "material-ui-icons"
@@ -57,7 +59,7 @@ module.exports = {
                     ]
                 }
             },
-            {test: /\.less?$/, loader: "style-loader!css-loader!less-loader"},
+            {test: /\.(css)?$/, loader: "style-loader!css-loader"},
             {test: /\.(png|woff|woff2|eot|ttf|svg|jpg|webp)$/, loader: "file-loader"}
         ]
     },
