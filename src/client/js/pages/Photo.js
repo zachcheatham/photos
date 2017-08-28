@@ -66,6 +66,10 @@ const styleSheet = createStyleSheet((theme) => ({
         paddingTop: theme.spacing.unit * 2,
         paddingBottom: theme.spacing.unit * 2,
     }),
+    listPadding: theme.mixins.gutters({}),
+    iconAdjustment: {
+        right: theme.spacing.unit * 2 + 4,
+    },
     map: {
         width: 360,
         height: 360
@@ -173,8 +177,16 @@ class Photo extends React.Component {
                             <div className={classes.infoContent}>
                                 <TextField label="Description" fullWidth={true} helperText={this.state.editingDescription ? "Press Enter to Save!" : false}/>
                             </div>
-                            <List subheader={<ListSubheader>Details</ListSubheader>}>
-                                <ListItem>
+                            <List
+                                subheader={
+                                    <ListSubheader
+                                        className={classes.listPadding}
+                                    >
+                                        Details
+                                    </ListSubheader>
+                                }
+                            >
+                                <ListItem className={classes.listPadding}>
                                     <ListItemIcon>
                                         <InsertInvitationIcon />
                                     </ListItemIcon>
@@ -187,13 +199,13 @@ class Photo extends React.Component {
                                         }
                                         secondary={tsMoment.format("dddd, h:mm A")}
                                     />
-                                    <ListItemSecondaryAction>
+                                    <ListItemSecondaryAction className={classes.iconAdjustment}>
                                         <IconButton>
                                             <ModeEditIcon />
                                         </IconButton>
                                     </ListItemSecondaryAction>
                                 </ListItem>
-                                <ListItem>
+                                <ListItem className={classes.listPadding}>
                                     <ListItemIcon>
                                         <ImageIcon />
                                     </ListItemIcon>
@@ -226,7 +238,7 @@ class Photo extends React.Component {
                                     />
                                 </ListItem>
                                 {this.state.info && this.state.info.model ?
-                                    <ListItem>
+                                    <ListItem className={classes.listPadding}>
                                         <ListItemIcon>
                                             <CameraIcon />
                                         </ListItemIcon>
@@ -280,7 +292,7 @@ class Photo extends React.Component {
                                     </ListItem>
                                 : ""}
                                 {this.state.info && this.state.info.latitude ?
-                                    <ListItem>
+                                    <ListItem className={classes.listPadding}>
                                         <ListItemIcon>
                                             <LocationOnIcon />
                                         </ListItemIcon>
