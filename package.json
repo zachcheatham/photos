@@ -4,8 +4,9 @@
   "description": "A Simple Photo/Video Viewer",
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server --content-base static --inline --hot --host 0.0.0.0 --public 192.168.1.6:8080",
-    "devServer": "forever --watch --watchDirectory ./src/server/ ./src/server/app.js"
+    "start": "forever start ./src/server/app.js",
+    "devclient": "webpack-dev-server --content-base static --inline --hot --host 0.0.0.0 --public 192.168.1.6:8080",
+    "devserver": "forever --watch --watchDirectory ./src/server/ ./src/server/app.js"
   },
   "author": "Zach Cheatham",
   "license": "ISC",
@@ -26,6 +27,7 @@
     "express": "^4.15.3",
     "file-loader": "^0.11.2",
     "fluent-ffmpeg": "^2.1.2",
+    "forever": "^0.15.3",
     "html-webpack-plugin": "^2.30.1",
     "leaflet": "^1.2.0",
     "material-ui": "^1.0.0-beta.4",
