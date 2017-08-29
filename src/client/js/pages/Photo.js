@@ -85,10 +85,12 @@ var formatBytes = function(bytes, precision) {
 }
 
 var makeInModel = function(make, model) {
-    const makeWords = make.split(" ");
-    for (var i = 0; i < makeWords.length; i++) {
-        if (model.includes(makeWords[i])) {
-            return true;
+    if (make && model) {
+        const makeWords = make.split(" ");
+        for (var i = 0; i < makeWords.length; i++) {
+            if (model.includes(makeWords[i])) {
+                return true;
+            }
         }
     }
     return false;
@@ -105,8 +107,6 @@ class Photo extends React.Component {
                 if (!makeInModel(response.data.photo.make, response.data.photo.model)) {
                     response.data.photo["show_make"] = true;
                 }
-
-                console.log(response.data.photo);
 
                 this.setState({
                     info: response.data.photo
@@ -125,7 +125,6 @@ class Photo extends React.Component {
     geodecode = (latitude, longitude) => {
         axios.get(constants.API_URL + "/geodecode/" + latitude + "," + longitude)
             .then((response) => {
-                console.log(response)
                 if (response.data.success) {
                     const info = this.state.info;
                     info["geodecoded"] = response.data.location;
@@ -133,7 +132,7 @@ class Photo extends React.Component {
                         info: info,
                     });
                 }
-            })
+            });
     }
 
     requestInfoToggle = () => {
