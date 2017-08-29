@@ -39,19 +39,48 @@ const styleSheet = createStyleSheet((theme) => ({
     },
     info: {
         backgroundColor: theme.palette.background.default,
-        flexGrow: 0,
-        flexShrink: 0,
-        flexBasis: 360,
         overflowX: "hidden",
         overflowY: "auto",
-        transition: "flex-basis ease 0.25s"
     },
-    hiddenInfo: {
-        extend: "info",
-        flexBasis: 0,
+    [theme.breakpoints.up("sm")]: {
+        info: {
+            transition: "flex-basis ease 0.25s",
+            flexGrow: 0,
+            flexShrink: 0,
+            flexBasis: 360,
+        },
+        hiddenInfo: {
+            flexBasis: 0,
+        },
+        infoInner: {
+            width: 360
+        },
+        map: {
+            width: 360,
+            height: 360
+        }
     },
-    infoInner: {
-        width: 360
+    [theme.breakpoints.down("sm")]: {
+        info: {
+            transition: "top ease 0.25s",
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            zIndex: 2,
+        },
+        hiddenInfo: {
+            top: "100vh"
+        },
+        infoInner: {
+            width: "100wh",
+            height: "100wh",
+        },
+        map: {
+            width: "100%",
+            height: 360
+        }
     },
     appBar: {
         display: "flex",
@@ -70,10 +99,6 @@ const styleSheet = createStyleSheet((theme) => ({
     iconAdjustment: {
         right: theme.spacing.unit * 2 + 4,
     },
-    map: {
-        width: 360,
-        height: 360
-    }
 }));
 
 var formatBytes = function(bytes, precision) {
@@ -200,7 +225,7 @@ class Photo extends React.Component {
                         filename={this.props.filename}
                         info={this.state.info}
                     />
-                    <div className={this.state.showInfo ? classes.info : classes.hiddenInfo}>
+                    <div className={`${classes.info} ${this.state.showInfo ? "" : classes.hiddenInfo}`}>
                         <div className={classes.infoInner}>
                             <div className={classes.appBar}>
                                 <Toolbar>
