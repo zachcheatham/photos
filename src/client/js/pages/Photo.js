@@ -135,12 +135,36 @@ class Photo extends React.Component {
             });
     }
 
+    saveDescription = (description) => {
+        axios.post(
+            constants.API_URL + "/edit/description/" + this.props.filename,
+            {
+                "description": description
+            }
+        );
+    }
+
     requestInfoToggle = () => {
         this.setState({showInfo: !this.state.showInfo});
     }
 
     requestBack = () => {
         this.props.history.goBack();
+    }
+
+    descriptionChanged = (event) => {
+        if (this.saveDescriptionTimeout) {
+            clearTimeout(this.saveDescriptionTimeout);
+        }
+
+        const val = event.target.value;
+        this.saveDescriptionTimeout = setTimeout(() => {
+            this.saveDescription(val);
+            this.saveDescriptionTimeout = undefined;
+        }, 3000);
+
+        this.state.info.comment = val;
+        this.setState({info: this.state.info});
     }
 
     componentDidMount() {
@@ -189,7 +213,11 @@ class Photo extends React.Component {
                                 </Toolbar>
                             </div>
                             <div className={classes.infoContent}>
-                                <TextField label="Description" fullWidth={true} helperText={this.state.editingDescription ? "Press Enter to Save!" : false}/>
+                                <TextField
+                                    label="Description"
+                                    fullWidth={true}
+                                    value={this.state.info ? this.state.info.comment : ""}
+                                    onChange={this.descriptionChanged}/>
                             </div>
                             <List
                                 subheader={

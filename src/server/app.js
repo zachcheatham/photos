@@ -1,5 +1,6 @@
 const PORT = 3000;
-const express = require("express")
+const express = require("express");
+const bodyParser = require('body-parser');
 const app = express();
 const database = require("./database.js");
 
@@ -8,6 +9,8 @@ app.use(function(req, res, next) {
     req.db = database;
     next();
 });
+
+app.use(bodyParser.json());
 
 app.use("/api/years", require("./routes/years"));
 app.use("/api/albums", require("./routes/albums"));

@@ -70,4 +70,55 @@ router.get("/rotate/:filename/:degrees", function(req, res) {
     }
 });
 
+router.post("/description/:filename/", function(req, res) {
+    console.log(req.body);
+    if (req.body.description !== undefined) {
+        var description = req.body.description;
+        if (description.length == 0) {
+            description = null;
+        }
+
+        req.db.query(`
+            UPDATE \`photos\`, \`videos\`
+            SET
+                \`photos\`.\`comment\` = ?,
+                \`videos\`.\`comment\` = ?
+            WHERE
+                \`photos\`.\`filename\` = ? OR
+                \`videos\`.\`filename\` = ?`,
+            [description, description, req.params.filename, req.params.filename],
+            function(error, results, fields) {
+                if (error) {
+                    res.statusCode = 500;
+                    res.json({
+                        "success": false,
+                        "filename": req.params.filename,
+                        "description": description,
+                        "error": "database_error",
+                        "error_extra": error.code
+                    });
+                }
+                else {
+                    res.json({
+                        "success": true,
+                        "filename": req.params.filename,
+                        "description": description
+                    });
+
+                    recordLog(req, req.params.filename, "description", description);
+                }
+            }
+        );
+    }
+    else {
+        res.statusCode = 400;
+        res.json({
+            "success": false,
+            "filename": req.params.filename,
+            "description": req.body.description,
+            "error": "invalid_description"
+        });
+    }
+});
+
 module.exports = router;
