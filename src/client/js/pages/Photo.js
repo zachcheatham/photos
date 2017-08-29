@@ -133,6 +133,10 @@ class Photo extends React.Component {
                     response.data.photo["show_make"] = true;
                 }
 
+                if (response.data.photo.comment == null) {
+                    response.data.photo.comment = "";
+                }
+
                 this.setState({
                     info: response.data.photo
                 })
