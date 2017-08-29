@@ -24,8 +24,11 @@ const styleSheet = createStyleSheet((theme) => ({
     center: {
         textAlign: "center"
     },
-    clickable: {
+    gridTile: {
         cursor: "pointer"
+    },
+    gridTileBackground: {
+        backgroundColor: "black",
     }
 }));
 
@@ -118,6 +121,7 @@ class Album extends React.Component {
                 columns = 7;
         }
 
+        // TODO: Rearrange so we see <Photo> no matter the circumstance
         if (
             !this.state.connectionProblem &&
             !this.state.unknownAlbum &&
@@ -157,11 +161,14 @@ class Album extends React.Component {
                         {this.state.photos.map((photo) => {
                                 return (
                                     <GridListTile
-                                        className={classes.clickable}
+                                        classes={{
+                                            root: classes.gridTile,
+                                            tile: classes.gridTileBackground
+                                        }}
                                         key={photo.filename}
                                         onClick={() => this.openPhoto(photo.filename)}
                                     >
-                                        <img src={`${constants.API_URL}/thumbnail/${photo.filename}`} />
+                                        <img src={`${constants.API_URL}/thumbnail/${photo.filename}`}/>
                                         {photo.type == "video" ?
                                             <ThumbLength length={photo.length} />
                                         :

@@ -21,8 +21,11 @@ const styleSheet = createStyleSheet((theme) => ({
     center: {
         textAlign: "center"
     },
-    clickable: {
+    gridTile: {
         cursor: "pointer"
+    },
+    gridTileBackground: {
+        backgroundColor: "black",
     }
 }));
 
@@ -152,7 +155,10 @@ class AlbumList extends React.Component {
 
                                 return (
                                     <GridListTile
-                                        className={classes.clickable}
+                                        classes={{
+                                            root: classes.gridTile,
+                                            tile: classes.gridTileBackground
+                                        }}
                                         key={album.album}
                                         onClick={() => this.openAlbum(album.album)}
                                     >
