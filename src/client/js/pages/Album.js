@@ -39,8 +39,8 @@ class Album extends React.Component {
         photos: undefined,
     }
 
-    fetchAlbums = (year, album) => {
-        axios.get(constants.API_URL + "/photos/" + year + "/" + album)
+    fetchPhotos = (year, album) => {
+        axios.get(constants.API_URL + "/albums/" + year + "/" + album)
             .then((response) => {
                 this.setState({
                     connectionProblem: false,
@@ -80,7 +80,7 @@ class Album extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchAlbums(
+        this.fetchPhotos(
             this.props.match.params.year,
             this.props.match.params.album
         );

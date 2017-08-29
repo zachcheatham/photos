@@ -127,7 +127,7 @@ class Photo extends React.Component {
     }
 
     getPhotoInfo = (filename) => {
-        axios.get(constants.API_URL + "/photos/" + filename)
+        axios.get(constants.API_URL + "/info/" + filename)
             .then((response) => {
                 if (!makeInModel(response.data.photo.make, response.data.photo.model)) {
                     response.data.photo["show_make"] = true;
