@@ -84,7 +84,16 @@ var formatBytes = function(bytes, precision) {
     return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
 }
 
-//TODO: Include make name in camera description when model doesn't include make
+var makeInModel = function(make, model) {
+    const makeWords = make.split(" ");
+    for (var i = 0; i < makeWords.length; i++) {
+        if (model.includes(makeWords[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 class Photo extends React.Component {
     state = {
         showInfo: false,
@@ -93,6 +102,12 @@ class Photo extends React.Component {
     getPhotoInfo = (filename) => {
         axios.get(constants.API_URL + "/photos/" + filename)
             .then((response) => {
+                if (!makeInModel(response.data.photo.make, response.data.photo.model)) {
+                    response.data.photo["show_make"] = true;
+                }
+
+                console.log(response.data.photo);
+
                 this.setState({
                     info: response.data.photo
                 })
@@ -246,7 +261,7 @@ class Photo extends React.Component {
                                             disableTypography={true}
                                             primary={
                                                 <Typography type="subheading">
-                                                    {this.state.info ? this.state.info.model : ""}
+                                                    {this.state.info.show_make ? this.state.info.make + " " + this.state.info.model : this.state.info.model}
                                                 </Typography>
                                             }
                                             secondary={
@@ -299,7 +314,7 @@ class Photo extends React.Component {
                                         <ListItemText
                                             primary={this.state.info.geodecoded ? this.state.info.geodecoded : "Locating..."}
                                             secondary={(Math.round(this.state.info.latitude * 1000) / 1000) + ", " + (Math.round(this.state.info.longitude * 1000) / 1000)}
-                                            />
+                                        />
                                     </ListItem>
                                 : ""}
                             </List>
