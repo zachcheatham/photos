@@ -14,6 +14,7 @@ import ArrowBackIcon from "material-ui-icons/ArrowBack";
 import FileDownloadIcon from "material-ui-icons/FileDownload";
 import InfoIcon from "material-ui-icons/Info";
 import MoreVertIcon from "material-ui-icons/MoreVert";
+import { CircularProgress } from "material-ui/Progress";
 import RotateRightIcon from "material-ui-icons/RotateRight";
 import ZoomOutIcon from "material-ui-icons/ZoomOut";
 
@@ -22,6 +23,9 @@ const styleSheet = createStyleSheet((theme) => ({
         backgroundColor: "black",
         position: "relative",
         overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     flex: {
         flex: 1
@@ -401,6 +405,13 @@ class PhotoViewer extends React.Component {
                 className={`${this.props.className} ${classes.main}`}
                 onMouseMove={this.onWindowMouseMove}
             >
+                {!this.state.imageLoaded ?
+                    <CircularProgress color="accent" size={50} />
+                :
+                    // BUG in ResizeAware. If you return an empty element,
+                    //  it freaks out.
+                    <span></span>
+                }
                 <div
                     className={`${classes.appBar} ${this.state.inactive ? classes.appBarHidden : ""}`}
                 >
