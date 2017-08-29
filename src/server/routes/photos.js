@@ -11,7 +11,7 @@ router.get("/:filename", function(req, res) {
         function(error, results, fields) {
             if (error) {
                 res.statusCode = 500;
-                res.json({"success": false, "filename": filename, "error": "database_error", "error_extra": error});
+                res.json({"success": false, "filename": filename, "error": "database_error", "error_extra": error.code});
             }
             else {
                 var exists = results.length > 0;
