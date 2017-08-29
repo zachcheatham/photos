@@ -269,12 +269,15 @@ class Photo extends React.Component {
                                                 tsMoment.format("MMMM D, YYYY")
                                         }
                                         secondary={tsMoment.format("dddd, h:mm A")}
-                                    />
+                                        />
+                                    {/*
+                                    BUG https://github.com/callemall/material-ui/issues/4787 DateTimePicker not supported
                                     <ListItemSecondaryAction className={classes.iconAdjustment}>
                                         <IconButton>
                                             <ModeEditIcon />
                                         </IconButton>
                                     </ListItemSecondaryAction>
+                                    */}
                                 </ListItem>
                                 <ListItem className={classes.listPadding}>
                                     <ListItemIcon>
