@@ -11,6 +11,7 @@ import Grid from "material-ui/Grid";
 import IconButton from "material-ui/IconButton";
 import List, { ListItem, ListItemIcon, ListItemSecondaryAction, ListItemText, ListSubheader } from "material-ui/List";
 import Modal from "material-ui/internal/Modal";
+import { CircularProgress } from "material-ui/Progress";
 import { withStyles, createStyleSheet } from "material-ui/styles";
 import TextField from "material-ui/TextField";
 import Toolbar from "material-ui/Toolbar";
@@ -33,8 +34,13 @@ const styleSheet = createStyleSheet((theme) => ({
         width: "100%",
         display: "flex",
         minHeight: "100vh",
+        backgroundColor: "black",
     },
-    photoContainer: {
+    mainLoading: {
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    mediaContainer: {
         flex: 1,
     },
     info: {
@@ -121,28 +127,33 @@ var makeInModel = function(make, model) {
     return false;
 }
 
-class Photo extends React.Component {
+class Media extends React.Component {
     state = {
         showInfo: false,
+        type: false,
     }
 
-    getPhotoInfo = (filename) => {
+    getMediaInfo = (filename) => {
         axios.get(constants.API_URL + "/info/" + filename)
             .then((response) => {
-                if (!makeInModel(response.data.photo.make, response.data.photo.model)) {
-                    response.data.photo["show_make"] = true;
+                if (!makeInModel(response.data.info.make, response.data.info.model)) {
+                    response.data.info["show_make"] = true;
                 }
 
-                if (response.data.photo.comment == null) {
-                    response.data.photo.comment = "";
+                if (response.data.info.comment == null) {
+                    response.data.info.comment = "";
                 }
+
+                const type = response.data.info.type;
+                response.data.info.type = undefined;
 
                 this.setState({
-                    info: response.data.photo
-                })
+                    type: type,
+                    info: response.data.info
+                });
 
-                if (response.data.photo.latitude && !response.data.photo.geodecoded) {
-                    this.geodecode(response.data.photo.latitude, response.data.photo.longitude);
+                if (response.data.info.latitude && !response.data.info.geodecoded) {
+                    this.geodecode(response.data.info.latitude, response.data.info.longitude);
                 }
             })
             .catch((error) => {
@@ -198,15 +209,19 @@ class Photo extends React.Component {
 
     componentDidMount() {
         if (this.props.filename) {
-            this.getPhotoInfo(this.props.filename);
+            this.getMediaInfo(this.props.filename);
         }
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.filename != this.props.filename) {
-            this.setState({info: false});
+            this.setState({
+                info: false,
+                type: false
+            });
+            
             if (nextProps.filename) {
-                this.getPhotoInfo(nextProps.filename);
+                this.getMediaInfo(nextProps.filename);
             }
         }
     }
@@ -221,14 +236,21 @@ class Photo extends React.Component {
                 show={this.props.show}
                 disableBackdrop={true}
             >
-                <div className={classes.main}>
-                    <PhotoViewer
-                        className={classes.photoContainer}
-                        requestInfoToggle={this.requestInfoToggle}
-                        requestBack={this.requestBack}
-                        filename={this.props.filename}
-                        info={this.state.info}
-                    />
+                <div className={`${classes.main} ${!this.state.type ? classes.mainLoading : ""}`}>
+                    {this.state.type == "photo" ?
+                        <PhotoViewer
+                            className={classes.mediaContainer}
+                            requestInfoToggle={this.requestInfoToggle}
+                            requestBack={this.requestBack}
+                            filename={this.props.filename}
+                            info={this.state.info}
+                        />
+                    : this.state.type == "video" ?
+                        <div>INSERT VIDEO SHIT HERE</div>
+                    :
+                        <CircularProgress color="accent" size={50} />
+                    }
+
                     <div className={`${classes.info} ${this.state.showInfo ? "" : classes.hiddenInfo}`}>
                         <div className={classes.infoInner}>
                             <div className={classes.appBar}>
@@ -399,4 +421,4 @@ class Photo extends React.Component {
     }
 }
 
-export default withStyles(styleSheet) (withRouter(Photo));
+export default withStyles(styleSheet) (withRouter(Media));

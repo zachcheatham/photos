@@ -4,38 +4,102 @@ router.get("/:filename", function(req, res) {
     const filename = req.params.filename;
 
     req.db.query(`
-        SELECT * FROM \`photos\`
-        LEFT JOIN \`photos_metadata\` ON \`photos\`.\`filename\` = \`photos_metadata\`.\`filename\`
-        WHERE \`photos\`.\`filename\` = ?`,
-        [filename],
+        SELECT * FROM
+        (
+        	SELECT
+        		"photo" as type,
+        		timestamp,
+        		suspect_time,
+        		width,
+                height,
+                NULL as length,
+                rotation,
+        		comment,
+                filesize,
+                make,
+                model,
+                lens_model,
+                fnumber,
+                exposure_time,
+                focal_length,
+                iso,
+                latitude,
+                longitude,
+                direction
+        	FROM
+        		photos
+        	LEFT JOIN
+        		photos_metadata ON photos.filename = photos_metadata.filename
+        	WHERE
+        		photos.filename = ?
+
+        	UNION ALL
+
+        	SELECT
+        		"video" as type,
+        		timestamp,
+        		suspect_time,
+                width,
+                height,
+        		length,
+                NULL as rotation,
+        		comment,
+                NULL as filesize,
+                NULL as make,
+                NULL as model,
+                NULL as lens_model,
+                NULL as fnumber,
+                NULL as exposure_time,
+                NULL as focal_length,
+                NULL as iso,
+                NULL as latitude,
+                NULL as longitude,
+                NULL as direction
+        	FROM videos
+            LEFT JOIN
+        		videos_metadata ON videos.filename = videos_metadata.filename
+        	WHERE
+        		videos.filename = ?
+        ) media`,
+        [filename, filename],
         function(error, results, fields) {
             if (error) {
                 res.statusCode = 500;
                 res.json({"success": false, "filename": filename, "error": "database_error", "error_extra": error.code});
             }
             else {
-                var exists = results.length > 0;
+                const exists = results.length > 0;
                 if (!exists) {
                     res.statusCode = 404;
                     res.json({"success": false, "filename": filename, "error": "not_found"});
                 }
-                else if (results[0].latitude) {
-                    const lat = Math.round(results[0].latitude * 100) / 100;
-                    const long = Math.round(results[0].longitude * 100) / 100;
-                    req.db.query(
-                        "SELECT `location` FROM `geodecode_cache` WHERE `lat` = ? AND `lon` = ?",
-                        [lat, long],
-                        function(error, geoResults, fields) {
-                            if (geoResults && geoResults.length > 0) {
-                                results[0].geodecoded = geoResults[0].location;
-                            }
-
-                            res.json({"success": true, "filename": filename, "photo": results[0]});
-                        }
-                    );
-                }
                 else {
-                    res.json({"success": true, "filename": filename, "photo": results[0]});
+                    // Remove null values
+                    const cleanResults = {};
+                    for (var key in results[0]) {
+                        if (results[0][key] !== null) {
+                            cleanResults[key] = results[0][key];
+                        }
+                    }
+
+                    if (cleanResults.latitude) {
+                        const lat = Math.round(cleanResults.latitude * 100) / 100;
+                        const long = Math.round(cleanResults.longitude * 100) / 100;
+                        req.db.query(
+                            "SELECT `location` FROM `geodecode_cache` WHERE `lat` = ? AND `lon` = ?",
+                            [lat, long],
+                            function(error, geoResults, fields) {
+                                if (geoResults && geoResults.length > 0) {
+                                    cleanResults.geodecoded = geoResults[0].location;
+                                }
+
+                                res.json({"success": true, "filename": filename, "info": cleanResults});
+                            }
+                        );
+                    }
+                    else {
+                        res.json({"success": true, "filename": filename, "info": cleanResults});
+                    }
                 }
             }
         }

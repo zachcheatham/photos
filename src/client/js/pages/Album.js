@@ -18,7 +18,7 @@ import Container from "../components/Container"
 import ErrorPlaceHolder from "../components/ErrorPlaceholder"
 import ThumbLength from "../components/ThumbLength"
 
-import Photo from "../pages/Photo"
+import Media from "../pages/Media"
 
 const styleSheet = createStyleSheet((theme) => ({
     center: {
@@ -179,7 +179,7 @@ class Album extends React.Component {
                             }
                         )}
                     </GridList>
-                    <Photo show={this.props.match.params.photo !== undefined} filename={this.props.match.params.photo}/>
+                    <Media show={this.props.match.params.photo !== undefined} filename={this.props.match.params.photo}/>
                 </Container>
             )
         }

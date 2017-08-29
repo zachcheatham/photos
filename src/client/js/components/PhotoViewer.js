@@ -75,24 +75,9 @@ class PhotoViewer extends React.Component {
 
         this.reset();
 
+        // Browser already has the image in memory
         if (this.refs.image.complete) {
             this.onImageLoaded({target: this.refs.image});
-        }
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if ((!this.props.info && nextProps.info) || (this.props.info.filename != nextProps.info.filename)) {
-            this.photoMetrics.rotation = nextProps.info.rotation;
-
-            if (this.state.imageLoaded) {
-                this.rotateImage(this.photoMetrics.rotation, false, false);
-                this.layoutImage();
-
-                setTimeout(() => {
-                    this.refs.image.style["visibility"] = "visible";
-                    this.setDisableTransitions(false);
-                }, 1);
-            }
         }
     }
 
@@ -464,7 +449,6 @@ class PhotoViewer extends React.Component {
                         }
                     </Toolbar>
                 </div>
-
                 <div
                     className={classes.imageContainer}
                     onWheel={this.onWheel}
