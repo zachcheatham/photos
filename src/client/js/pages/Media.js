@@ -309,7 +309,7 @@ class Media extends React.Component {
                                         disableTypography={true}
                                         primary={
                                             <Typography type="subheading">
-                                                {this.state.info ? this.state.info.filename : ""}
+                                                {this.props.filename}
                                             </Typography>
                                         }
                                         secondary={
