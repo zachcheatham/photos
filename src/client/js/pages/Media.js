@@ -224,6 +224,12 @@ class Media extends React.Component {
                 this.getMediaInfo(nextProps.filename);
             }
         }
+
+        if (!nextProps.show && this.props.show) {
+            this.setState({
+                showInfo: false
+            })
+        }
     }
 
     render() {
