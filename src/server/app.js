@@ -16,6 +16,7 @@ app.use("/api/update-index", require("./routes/update-index"));
 app.use("/api/thumbnail", require("./routes/thumbnail"));
 app.use("/api/media", require("./routes/media"));
 app.use("/api/geodecode", require("./routes/geodecode"));
+app.use("/api/edit", require("./routes/edit"));
 
 app.listen(PORT, (err) => {
     if (err)

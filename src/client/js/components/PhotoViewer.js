@@ -1,6 +1,8 @@
 const constants = require("../helpers/constants.js");
 import React from 'react';
 
+import axios from "axios";
+
 import ResizeAware from "react-resize-aware";
 
 import AppBar from "material-ui/AppBar";
@@ -200,6 +202,10 @@ class PhotoViewer extends React.Component {
         }
     }
 
+    saveImageRotation = (degrees) => {
+        axios.get(constants.API_URL + "/edit/rotate/" + this.props.filename + "/" + degrees);
+    }
+
     reset = () => {
         this.photoMetrics = {
             originalWidth: 0,
@@ -313,7 +319,7 @@ class PhotoViewer extends React.Component {
         }
 
         if (save) {
-            // TODO: Send rotation to api
+            this.saveImageRotation(this.photoMetrics.rotation);
         }
     }
 
