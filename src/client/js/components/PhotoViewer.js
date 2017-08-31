@@ -166,7 +166,7 @@ class PhotoViewer extends React.Component {
         this.setState({imageLoaded: true});
 
         if (this.props.info) {
-            this.rotateImage(this.photoMetrics.rotation, false, false);
+            this.rotateImage(this.props.info.rotation, false, false);
             this.layoutImage();
 
             setTimeout(() => {
