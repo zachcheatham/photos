@@ -217,8 +217,6 @@ function processPhoto(photo) {
                         }
                     );
 
-                    const stat = fs.statSync(photo.path)
-
                     db.query(`
                         INSERT INTO \`photos_metadata\`
                         (
@@ -249,7 +247,8 @@ function processPhoto(photo) {
                             photo.getGPSLatitude(),
                             photo.getGPSLongitude(),
                             photo.getGPSDirection(),
-                        ])
+                        ]
+                    );
 
                     if (!modifiedAlbums.indexOf(photo.year + "/" + photo.album) > -1) {
                         modifiedAlbums.push(photo.year + "/" + photo.album);
@@ -287,15 +286,54 @@ function processVideo(video) {
                         console.log(error);
                     }
 
-                    db.query("INSERT INTO `videos` VALUES(?, ?, ?, ?, ?, ?, ?)", [
-                        video.filename,
-                        video.year,
-                        video.album,
-                        video.getTimestamp(recordError),
-                        video.suspectTime,
-                        video.getLength(),
-                        null
-                    ]);
+                    db.query(`
+                        INSERT INTO videos
+                        (filename, album, year, timestamp, suspect_time, width, height, length)
+                        VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [
+                            video.filename,
+                            video.album,
+                            video.year,
+                            video.getTimestamp(recordError),
+                            video.suspectTime,
+                            video.getWidth(),
+                            video.getHeight(),
+                            video.getLength()
+                        ]
+                    );
+
+                    db.query(`
+                        INSERT INTO \`videos_metadata\`
+                        (
+                            filename,
+                            filesize,
+                            format,
+                            video_codec,
+                            pixel_format,
+                            framerate,
+                            scanning_method,
+                            audio_codec,
+                            audio_channels,
+                            audio_channel_layout,
+                            audio_sample_rate,
+                            audio_bitrate
+                        )
+                        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [
+                            video.filename,
+                            video.getFilesize(),
+                            video.getFormat(),
+                            video.getVideoCodec(),
+                            video.getPixelFormat(),
+                            video.getFramerate(),
+                            video.getScanningMethod(),
+                            video.getAudioCodec(),
+                            video.getAudioChannels(),
+                            video.getAudioChannelLayout(),
+                            video.getAudioSampleRate(),
+                            video.getAudioBitrate()
+                        ]
+                    );
 
                     if (!modifiedAlbums.indexOf(video.year + "/" + video.album) > -1) {
                         modifiedAlbums.push(video.year + "/" + video.album);

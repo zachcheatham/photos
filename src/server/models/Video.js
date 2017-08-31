@@ -1,5 +1,6 @@
 const mime = require("mime");
 const ffprobe = require("node-ffprobe");
+const fs = require("fs");
 
 var methods = Video.prototype;
 
@@ -74,8 +75,183 @@ methods.getTimestamp = function(errorCallback) {
     return 0;
 }
 
+methods.getWidth = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "video") {
+                return this.probeData.streams[i].width;
+            }
+        }
+    }
+    return null;
+}
+
+methods.getHeight = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "video") {
+                return this.probeData.streams[i].height;
+            }
+        }
+    }
+    return null;
+}
+
 methods.getLength = function() {
     return this.probeData.format.duration;
 }
+
+methods.getFilesize = function() {
+    if (this.probeData && this.probeData.format) {
+        return this.probeData.format.size;
+    }
+    else {
+        const stat = fs.statSync(this.path);
+        return stat["size"];
+    }
+}
+
+methods.getFormat = function() {
+    if (this.probeData && this.probeData.format) {
+        return this.probeData.format.format_name;
+    }
+    return null;
+}
+
+methods.getVideoCodec = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "video") {
+                return this.probeData.streams[i].codec_name
+            }
+        }
+    }
+    return null;
+}
+
+methods.getPixelFormat = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "video") {
+                return this.probeData.streams[i].pix_fmt
+            }
+        }
+    }
+    return null;
+}
+
+methods.getPixelFormat = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "video") {
+                return this.probeData.streams[i].pix_fmt
+            }
+        }
+    }
+    return null;
+}
+
+methods.getFramerate = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "video") {
+                const frac = this.probeData.streams[i].r_frame_rate.split("/");
+                if (frac.length == 2) {
+                    const n = parseInt(frac[0]);
+                    const d = parseInt(frac[1]);
+
+                    return Math.round(n/d * 100) / 100;
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+    }
+    return null;
+}
+
+methods.getScanningMethod = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "video") {
+                if (this.probeData.streams[i].field_order == "unknown") {
+                    return 'P';
+                }
+                else {
+                    return 'I';
+                }
+            }
+        }
+    }
+    return null;
+}
+
+methods.getAudioCodec = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "audio") {
+                return this.probeData.streams[i].codec_name;
+            }
+        }
+    }
+    return null;
+}
+
+methods.getAudioChannels = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "audio") {
+                return this.probeData.streams[i].channels;
+            }
+        }
+    }
+    return null;
+}
+
+methods.getAudioChannels = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "audio") {
+                return this.probeData.streams[i].channels;
+            }
+        }
+    }
+    return null;
+}
+
+methods.getAudioChannelLayout = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "audio") {
+                return this.probeData.streams[i].channel_layout;
+            }
+        }
+    }
+    return null;
+}
+
+methods.getAudioSampleRate = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "audio") {
+                return this.probeData.streams[i].sample_rate;
+            }
+        }
+    }
+    return null;
+}
+
+methods.getAudioBitrate = function() {
+    if (this.probeData && this.probeData.streams) {
+        for (var i = 0; i < this.probeData.streams.length; i++) {
+            if (this.probeData.streams[i].codec_type == "audio") {
+                return this.probeData.streams[i].bit_rate;
+            }
+        }
+    }
+    return null;
+}
+
 
 module.exports = Video;

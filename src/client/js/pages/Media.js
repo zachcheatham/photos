@@ -28,6 +28,7 @@ import LocationOnIcon from "material-ui-icons/LocationOn"
 import moment from "moment-timezone";
 
 import PhotoViewer from "../components/PhotoViewer.js";
+import VideoViewer from "../components/VideoViewer.js";
 
 const styleSheet = createStyleSheet((theme) => ({
     main: {
@@ -219,7 +220,7 @@ class Media extends React.Component {
                 info: false,
                 type: false
             });
-            
+
             if (nextProps.filename) {
                 this.getMediaInfo(nextProps.filename);
             }
@@ -252,7 +253,13 @@ class Media extends React.Component {
                             info={this.state.info}
                         />
                     : this.state.type == "video" ?
-                        <div>INSERT VIDEO SHIT HERE</div>
+                        <VideoViewer
+                            className={classes.mediaContainer}
+                            requestInfoToggle={this.requestInfoToggle}
+                            requestBack={this.requestBack}
+                            filename={this.props.filename}
+                            info={this.state.info}
+                        />
                     :
                         <CircularProgress color="accent" size={50} />
                     }
