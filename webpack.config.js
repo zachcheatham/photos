@@ -19,19 +19,19 @@ const plugins = [
 if (!debug) {
     plugins.push(
         new webpack.optimize.DedupePlugin(),
-        new webpack.optimize.OccurenceOrderPlugin(),
-        new webpack.optimize.UglifyJsPlugin({mangle: false, sourcemap: false})
+        new webpack.optimize.OccurrenceOrderPlugin(),
+        new webpack.optimize.UglifyJsPlugin({minimize: true, mangle: false, sourcemap: false})
     )
 
-    jsEntry.unshift(
+    /*jsEntry.unshift(
         'webpack-dev-server/client?http://localhost:8080',
         'webpack/hot/only-dev-server'
-    );
+    );*/
 }
 
 module.exports = {
     context: __dirname + "/src/client",
-    devtool: debug ? "inline-sourcemap" : null,
+    devtool: debug ? "inline-sourcemap" : false,
     entry: {
         js: ["./js/app"],
         vendor: [
