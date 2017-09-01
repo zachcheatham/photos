@@ -4,8 +4,55 @@
         <meta charset="utf-8">
         <meta name="viewport" content="user-scalable=0, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height">
         <meta name="theme-color" content="#212121">
+        <style>
+            .loading-placeholder {
+                background-color: #212121;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .loading-placeholder > div {
+                text-align: center;
+            }
+            .loading-placeholder > div > div:first-child {
+                color: white;
+                font-family: "Roboto Condensed", "Arial";
+                font-weight: lighter;
+                font-size: 48px;
+            }
+            .loading-placeholder > div > div:nth-child(2) {
+                color: white;
+                font-family: "Roboto Condensed", "Arial";
+                font-weight: lighter;
+                font-size: 36px;
+            }
+            noscript {
+                font-family: "Monospace";
+                font-size: 32px;
+                color: #E53935;
+                display: block;
+                margin-top: 15px;
+            }
+        </style>
     </head>
     <body>
-        <div id="root"></div>
+        <div id="root">
+            <div class="loading-placeholder">
+                <div>
+                    <div>Photo Browser</div>
+                    <div>
+                        Loading...
+                    </div>
+                    <noscript>
+                        Javascript must be enabled!
+                    </noscript>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
