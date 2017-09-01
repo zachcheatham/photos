@@ -5,8 +5,8 @@ import axios from "axios";
 
 import ResizeAware from "react-resize-aware";
 
-import AppBar from "material-ui/AppBar";
 import IconButton from "material-ui/IconButton";
+import { CircularProgress } from "material-ui/Progress";
 import { withStyles, createStyleSheet } from "material-ui/styles";
 import Toolbar from "material-ui/Toolbar";
 
@@ -14,7 +14,6 @@ import ArrowBackIcon from "material-ui-icons/ArrowBack";
 import FileDownloadIcon from "material-ui-icons/FileDownload";
 import InfoIcon from "material-ui-icons/Info";
 import MoreVertIcon from "material-ui-icons/MoreVert";
-import { CircularProgress } from "material-ui/Progress";
 import RotateRightIcon from "material-ui-icons/RotateRight";
 import ZoomOutIcon from "material-ui-icons/ZoomOut";
 
@@ -73,11 +72,11 @@ class PhotoViewer extends React.Component {
     }
 
     componentDidMount() {
+        this.reset();
+
         this.hideToolbarTimeout = setTimeout(() => {
             this.setState({inactive: true})
         }, 3000);
-
-        this.reset();
 
         // Browser already has the image in memory
         if (this.refs.image.complete) {
@@ -214,9 +213,9 @@ class PhotoViewer extends React.Component {
             y: 0
         }
 
-        this.state.imageLoaded = undefined;
-        this.state.inactive = undefined;
-        this.state.zoomed = undefined;
+        this.state.imageLoaded = false;
+        this.state.inactive = false;
+        this.state.zoomed = false;
 
         const container = this.refs.imageContainer;
         const image = this.refs.image;
@@ -312,7 +311,7 @@ class PhotoViewer extends React.Component {
         }
     }
 
-    zoomImage = (zoom, event=false, ) => {
+    zoomImage = (zoom, event=false) => {
         if (zoom < 1.0) {
             zoom = 1.0;
         }
@@ -356,8 +355,8 @@ class PhotoViewer extends React.Component {
             var py = 0;
 
             if (event) {
-                px = event.nativeEvent.pageX;
-                py = event.nativeEvent.pageY;
+                px = event.nativeEvent.clientX;
+                py = event.nativeEvent.clientY;
 
                 x = px - this.photoMetrics.x;
                 y = py - this.photoMetrics.y;
