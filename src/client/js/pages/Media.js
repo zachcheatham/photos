@@ -24,6 +24,8 @@ import InsertInvitationIcon from "material-ui-icons/InsertInvitation"
 import LensIcon from "material-ui-icons/Lens"
 import ModeEditIcon from "material-ui-icons/ModeEdit"
 import LocationOnIcon from "material-ui-icons/LocationOn"
+import VideocamIcon from "material-ui-icons/Videocam"
+import VolumeUpIcon from "material-ui-icons/VolumeUp"
 
 import moment from "moment-timezone";
 
@@ -114,6 +116,23 @@ var formatBytes = function(bytes, precision) {
     var units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'],
         number = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+}
+
+var formatBits = function(bytes, precision) {
+    if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
+    if (typeof precision === 'undefined') precision = 0;
+    var units = ['b', 'kb', 'mb', 'gb', 'tb', 'pb'],
+        number = Math.floor(Math.log(bytes) / Math.log(1000));
+    return (bytes / Math.pow(1000, Math.floor(number))).toFixed(precision) + units[number];
+}
+
+var gcd = function(a, b) {
+    return (b == 0) ? a : gcd(b, a%b);
+}
+
+var calculateAspect = function(w, h) {
+    const r = gcd(w, h);
+    return w / r + ":" + h / r;
 }
 
 var makeInModel = function(make, model) {
@@ -308,7 +327,7 @@ class Media extends React.Component {
                                     {/*
                                     BUG https://github.com/callemall/material-ui/issues/4787 DateTimePicker not supported
                                     <ListItemSecondaryAction className={classes.iconAdjustment}>
-                                        <IconButton>
+                                        <IconButton>480p 60fps h264
                                             <ModeEditIcon />
                                         </IconButton>
                                     </ListItemSecondaryAction>
@@ -396,6 +415,74 @@ class Media extends React.Component {
                                                         : ""}
                                                     </Grid>
                                                 : false
+                                            }
+                                        />
+                                    </ListItem>
+                                : ""}
+                                {this.state.info && this.state.info.video_codec ?
+                                    <ListItem className={classes.listPadding}>
+                                        <ListItemIcon>
+                                            <VideocamIcon />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            disableTypography={true}
+                                            primary={
+                                                <Typography type="subheading">
+                                                    {this.state.info.video_codec}
+                                                </Typography>
+                                            }
+                                            secondary={
+                                                <Grid container justify="space-between">
+                                                    <Grid item>
+                                                        <Typography color="secondary" type="body1">
+                                                            {this.state.info.height}{this.state.info.scanning_method.toLowerCase()}
+                                                        </Typography>
+                                                    </Grid>
+                                                    <Grid item>
+                                                        <Typography color="secondary" type="body1">
+                                                            {Math.round(this.state.info.framerate)}fps
+                                                        </Typography>
+                                                    </Grid>
+                                                    <Grid item>
+                                                        <Typography color="secondary" type="body1">
+                                                            {calculateAspect(this.state.info.width, this.state.info.height)}
+                                                        </Typography>
+                                                    </Grid>
+                                                </Grid>
+                                            }
+                                        />
+                                    </ListItem>
+                                : ""}
+                                {this.state.info && this.state.info.audio_codec ?
+                                    <ListItem className={classes.listPadding}>
+                                        <ListItemIcon>
+                                            <VolumeUpIcon />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            disableTypography={true}
+                                            primary={
+                                                <Typography type="subheading">
+                                                    {this.state.info.audio_codec}
+                                                </Typography>
+                                            }
+                                            secondary={
+                                                <Grid container justify="space-between">
+                                                    <Grid item>
+                                                        <Typography color="secondary" type="body1">
+                                                            {formatBits(this.state.info.audio_bitrate)}ps&nbsp;
+                                                        </Typography>
+                                                    </Grid>
+                                                    <Grid item>
+                                                        <Typography color="secondary" type="body1">
+                                                            {this.state.info.audio_sample_rate}hz
+                                                        </Typography>
+                                                    </Grid>
+                                                    <Grid item>
+                                                        <Typography color="secondary" type="body1">
+                                                            {this.state.info.audio_channel_layout.charAt(0).toUpperCase() + this.state.info.audio_channel_layout.substr(1)}
+                                                        </Typography>
+                                                    </Grid>
+                                                </Grid>
                                             }
                                         />
                                     </ListItem>

@@ -122,18 +122,7 @@ methods.getVideoCodec = function() {
     if (this.probeData && this.probeData.streams) {
         for (var i = 0; i < this.probeData.streams.length; i++) {
             if (this.probeData.streams[i].codec_type == "video") {
-                return this.probeData.streams[i].codec_name
-            }
-        }
-    }
-    return null;
-}
-
-methods.getPixelFormat = function() {
-    if (this.probeData && this.probeData.streams) {
-        for (var i = 0; i < this.probeData.streams.length; i++) {
-            if (this.probeData.streams[i].codec_type == "video") {
-                return this.probeData.streams[i].pix_fmt
+                return this.probeData.streams[i].codec_long_name
             }
         }
     }
@@ -191,7 +180,7 @@ methods.getAudioCodec = function() {
     if (this.probeData && this.probeData.streams) {
         for (var i = 0; i < this.probeData.streams.length; i++) {
             if (this.probeData.streams[i].codec_type == "audio") {
-                return this.probeData.streams[i].codec_name;
+                return this.probeData.streams[i].codec_long_name;
             }
         }
     }
