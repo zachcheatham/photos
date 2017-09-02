@@ -18,7 +18,6 @@ const plugins = [
 
 if (!debug) {
     plugins.push(
-        new webpack.optimize.DedupePlugin(),
         new webpack.optimize.OccurrenceOrderPlugin(),
         new webpack.optimize.UglifyJsPlugin({minimize: true, mangle: false, sourcemap: false})
     )
@@ -66,6 +65,7 @@ module.exports = {
             "material-ui-icons/CompareArrows",
             "material-ui-icons/ErrorOutline",
             "material-ui-icons/FileDownload",
+            "material-ui-icons/Forward10",
             "material-ui-icons/Image",
             "material-ui-icons/Info",
             "material-ui-icons/InsertInvitation",
@@ -74,6 +74,9 @@ module.exports = {
             "material-ui-icons/LocationOn",
             "material-ui-icons/MoreVert",
             "material-ui-icons/ModeEdit",
+            "material-ui-icons/Pause",
+            "material-ui-icons/PlayArrow",
+            "material-ui-icons/Replay10",
             "material-ui-icons/RotateRight",
             "material-ui-icons/ZoomOut",
             "moment",
