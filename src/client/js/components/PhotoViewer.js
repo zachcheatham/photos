@@ -7,7 +7,7 @@ import ResizeAware from "react-resize-aware";
 
 import IconButton from "material-ui/IconButton";
 import { CircularProgress } from "material-ui/Progress";
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import Toolbar from "material-ui/Toolbar";
 
 import ArrowBackIcon from "material-ui-icons/ArrowBack";
@@ -17,7 +17,7 @@ import MoreVertIcon from "material-ui-icons/MoreVert";
 import RotateRightIcon from "material-ui-icons/RotateRight";
 import ZoomOutIcon from "material-ui-icons/ZoomOut";
 
-const styleSheet = createStyleSheet((theme) => ({
+const styles = (theme) => ({
     main: {
         backgroundColor: "black",
         position: "relative",
@@ -60,7 +60,7 @@ const styleSheet = createStyleSheet((theme) => ({
     image: {
         visibility: "hidden"
     }
-}));
+});
 
 class PhotoViewer extends React.Component {
     hideToolbarTimeout = undefined
@@ -482,4 +482,4 @@ class PhotoViewer extends React.Component {
     }
 }
 
-export default withStyles(styleSheet) (PhotoViewer);
+export default withStyles(styles) (PhotoViewer);

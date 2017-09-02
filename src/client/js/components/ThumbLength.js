@@ -3,10 +3,10 @@ import React from "react";
 require("moment-duration-format");
 import moment from "moment";
 
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography";
 
-const styleSheet = createStyleSheet(theme => ({
+const styles = theme => ({
     root: {
         position: "absolute",
         bottom: theme.spacing.unit,
@@ -18,7 +18,7 @@ const styleSheet = createStyleSheet(theme => ({
         fontSize: 16,
         borderRadius: 3
     }
-}));
+});
 
 class ThumbLength extends React.Component {
     render() {
@@ -37,4 +37,4 @@ class ThumbLength extends React.Component {
     }
 }
 
-export default withStyles(styleSheet)(ThumbLength);
+export default withStyles(styles)(ThumbLength);

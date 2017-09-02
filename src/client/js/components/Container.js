@@ -1,12 +1,12 @@
 import React from 'react';
-import { withStyles, createStyleSheet } from 'material-ui/styles';
+import { withStyles } from 'material-ui/styles';
 
-const styleSheet = createStyleSheet(theme => ({
+const styles = theme => ({
     container: theme.mixins.gutters({
         paddingTop: theme.spacing.unit * 11,
         flex: 1,
     })
-}));
+});
 
 class Container extends React.Component {
     render() {
@@ -19,4 +19,4 @@ class Container extends React.Component {
     }
 }
 
-export default withStyles(styleSheet)(Container);
+export default withStyles(styles)(Container);

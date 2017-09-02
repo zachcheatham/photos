@@ -2,21 +2,21 @@ import React from 'react';
 import { withRouter } from "react-router-dom"
 
 import Button from "material-ui/Button";
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography"
 
 import CloudOffIcon from "material-ui-icons/CloudOff";
 
 import Container from "../components/Container"
 
-const styleSheet = createStyleSheet((theme) => ({
+const styles = (theme) => ({
     center: {
         textAlign: "center"
     },
     button: {
         marginTop: theme.spacing.unit * 2
     }
-}));
+});
 
 class NotFound extends React.Component {
     goBack = () => {
@@ -47,4 +47,4 @@ class NotFound extends React.Component {
     }
 }
 
-export default withStyles(styleSheet)(withRouter(NotFound));
+export default withStyles(styles)(withRouter(NotFound));

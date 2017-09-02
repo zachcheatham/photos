@@ -1,10 +1,10 @@
 import React from "react";
 
 import Divider from "material-ui/Divider";
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography";
 
-const styleSheet = createStyleSheet(theme => ({
+const styles = theme => ({
     container: theme.mixins.gutters({
         paddingTop: theme.spacing.unit * 2,
         paddingBottom: theme.spacing.unit * 2
@@ -12,7 +12,7 @@ const styleSheet = createStyleSheet(theme => ({
     footDivider: {
         marginBottom: theme.spacing.unit
     }
-}));
+});
 
 class Container extends React.Component {
     render() {
@@ -26,4 +26,4 @@ class Container extends React.Component {
     }
 }
 
-export default withStyles(styleSheet)(Container);
+export default withStyles(styles)(Container);

@@ -7,7 +7,7 @@ import { Route, withRouter } from "react-router-dom"
 import Button from "material-ui/Button";
 import { GridList, GridListTile, GridListTileBar } from "material-ui/GridList";
 import { CircularProgress } from 'material-ui/Progress';
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography";
 import withWidth from 'material-ui/utils/withWidth';
 
@@ -20,7 +20,7 @@ import ThumbLength from "../components/ThumbLength"
 
 import Media from "../pages/Media"
 
-const styleSheet = createStyleSheet((theme) => ({
+const styles = (theme) => ({
     center: {
         textAlign: "center"
     },
@@ -30,7 +30,7 @@ const styleSheet = createStyleSheet((theme) => ({
     gridTileBackground: {
         backgroundColor: "black",
     }
-}));
+});
 
 class Album extends React.Component {
     state = {
@@ -186,4 +186,4 @@ class Album extends React.Component {
     }
 }
 
-export default compose(withStyles(styleSheet), withWidth())(withRouter(Album));
+export default compose(withStyles(styles), withWidth())(withRouter(Album));

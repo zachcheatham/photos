@@ -3,7 +3,7 @@ import React from "react";
 import {Route, Switch} from "react-router-dom";
 import BrowserRouter from "react-router-dom/BrowserRouter";
 
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 
 import Footer from "../components/Footer"
 import IndexManager from "../components/IndexManager"
@@ -15,13 +15,13 @@ import Album from "../pages/Album";
 import NotFound from "../pages/NotFound";
 import Overview from "../pages/Overview";
 
-const styleSheet = createStyleSheet((theme) => ({
+const styles = theme => ({
     flexRoot: {
         display: "flex",
         minHeight: "100vh",
         flexDirection: "column"
     }
-}));
+});
 
 class Index extends React.Component {
     state = {
@@ -63,4 +63,4 @@ class Index extends React.Component {
     }
 }
 
-export default withRoot(withStyles(styleSheet)(Index));
+export default withRoot(withStyles(styles)(Index));

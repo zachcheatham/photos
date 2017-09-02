@@ -3,12 +3,12 @@ import { withRouter } from "react-router-dom"
 
 import Button from "material-ui/Button";
 import Typography from 'material-ui/Typography';
-import { withStyles, createStyleSheet } from 'material-ui/styles';
+import { withStyles } from 'material-ui/styles';
 
 import ErrorOutlineIcon from "material-ui-icons/ErrorOutline";
 import CloudOffIcon from "material-ui-icons/CloudOff";
 
-const styleSheet = createStyleSheet(theme => ({
+const styles = theme => ({
     error: {
         color: theme.palette.text.secondary,
     },
@@ -27,7 +27,7 @@ const styleSheet = createStyleSheet(theme => ({
     button: {
         marginTop: theme.spacing.unit * 4
     }
-}));
+});
 
 class ErrorPlaceHolder extends React.Component {
     goBack = () => {
@@ -77,4 +77,4 @@ class ErrorPlaceHolder extends React.Component {
     }
 }
 
-export default withStyles(styleSheet)(withRouter(ErrorPlaceHolder));
+export default withStyles(styles)(withRouter(ErrorPlaceHolder));

@@ -12,7 +12,7 @@ import IconButton from "material-ui/IconButton";
 import List, { ListItem, ListItemIcon, ListItemSecondaryAction, ListItemText, ListSubheader } from "material-ui/List";
 import Modal from "material-ui/internal/Modal";
 import { CircularProgress } from "material-ui/Progress";
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import TextField from "material-ui/TextField";
 import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
@@ -32,7 +32,7 @@ import moment from "moment-timezone";
 import PhotoViewer from "../components/PhotoViewer.js";
 import VideoViewer from "../components/VideoViewer.js";
 
-const styleSheet = createStyleSheet((theme) => ({
+const styles = (theme) => ({
     main: {
         width: "100%",
         display: "flex",
@@ -108,7 +108,7 @@ const styleSheet = createStyleSheet((theme) => ({
     iconAdjustment: {
         right: theme.spacing.unit * 2 + 4,
     },
-}));
+});
 
 var formatBytes = function(bytes, precision) {
     if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
@@ -521,4 +521,4 @@ class Media extends React.Component {
     }
 }
 
-export default withStyles(styleSheet) (withRouter(Media));
+export default withStyles(styles) (withRouter(Media));

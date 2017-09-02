@@ -11,13 +11,13 @@ import List, { ListItem, ListItemText } from "material-ui/List";
 import Menu, {MenuItem} from "material-ui/Menu"
 import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 
 import KeyboardArrowDownIcon from "material-ui-icons/KeyboardArrowDown";
 import MoreVertIcon from "material-ui-icons/MoreVert";
 import PhotoIcon from "material-ui-icons/Photo";
 
-const styleSheet = createStyleSheet(theme => ({
+const styles = theme => ({
     icon: {
         margin: theme.spacing.unit
     },
@@ -32,7 +32,7 @@ const styleSheet = createStyleSheet(theme => ({
         padding: 0,
         flex: "none"
     }
-}));
+});
 
 class PhotosAppBar extends React.Component {
     state = {
@@ -181,4 +181,4 @@ class PhotosAppBar extends React.Component {
     }
 }
 
-export default withStyles(styleSheet)(withRouter(PhotosAppBar));
+export default withStyles(styles)(withRouter(PhotosAppBar));

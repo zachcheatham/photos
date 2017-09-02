@@ -7,13 +7,13 @@ import Typography from "material-ui/Typography";
 
 import Container from "../components/Container"
 
-const styleSheet = createStyleSheet((theme) => ({
+const styles = (theme) => ({
     paddedPaper: theme.mixins.gutters({
         paddingTop: theme.spacing.unit * 2,
         paddingBottom: theme.spacing.unit * 2,
         marginBottom: theme.spacing.unit * 2
     })
-}));
+});
 
 class Overview extends React.Component {
     render() {
@@ -50,4 +50,4 @@ class Overview extends React.Component {
     }
 }
 
-export default withStyles(styleSheet)(Overview);
+export default withStyles(styles)(Overview);

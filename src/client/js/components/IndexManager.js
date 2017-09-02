@@ -30,7 +30,7 @@ const MODE_VIDEOS = 2;
 const MODE_CLEANING = 3;
 const MODE_FINISHED = 4;
 
-const styleSheet = createStyleSheet(theme => ({
+const styles = theme => ({
     appBar: {
         borderRadius: "2px 2px 0 0"
     },
@@ -82,7 +82,7 @@ const styleSheet = createStyleSheet(theme => ({
     errorWarning: {
         color: orange[900]
     }
-}));
+});
 
 class IndexManager extends React.Component {
     state = {
@@ -274,4 +274,4 @@ class IndexManager extends React.Component {
     }
 }
 
-export default compose(withStyles(styleSheet), withWidth())(IndexManager);
+export default compose(withStyles(styles), withWidth())(IndexManager);

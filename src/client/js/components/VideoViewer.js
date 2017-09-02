@@ -3,7 +3,7 @@ import React from 'react';
 
 import IconButton from "material-ui/IconButton";
 import { CircularProgress } from "material-ui/Progress";
-import { withStyles, createStyleSheet } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import Toolbar from "material-ui/Toolbar";
 
 import ArrowBackIcon from "material-ui-icons/ArrowBack";
@@ -15,7 +15,7 @@ import PlayArrowIcon from "material-ui-icons/PlayArrow";
 import MoreVertIcon from "material-ui-icons/MoreVert";
 import Replay10Icon from "material-ui-icons/Replay10";
 
-const styleSheet = createStyleSheet((theme) => ({
+const styles = (theme) => ({
     main: {
         backgroundColor: "black",
         position: "relative",
@@ -63,7 +63,7 @@ const styleSheet = createStyleSheet((theme) => ({
         width: "100%",
         height: "100%"
     },
-}));
+});
 
 class VideoViewer extends React.Component {
     state = {
@@ -253,4 +253,4 @@ class VideoViewer extends React.Component {
     }
 }
 
-export default withStyles(styleSheet) (VideoViewer);
+export default withStyles(styles) (VideoViewer);
