@@ -1,12 +1,10 @@
-// @flow
-
-import { create } from 'jss';
-import preset from 'jss-preset-default';
-import { SheetsRegistry } from 'react-jss';
-import createPalette from 'material-ui/styles/palette';
-import createMuiTheme from 'material-ui/styles/theme';
-import {grey, blue} from 'material-ui/colors';
-import createGenerateClassName from 'material-ui/styles/createGenerateClassName';
+import { create } from "jss";
+import preset from "jss-preset-default";
+import { SheetsRegistry } from "react-jss";
+import createGenerateClassName from "material-ui/styles/createGenerateClassName";
+import createMuiTheme from "material-ui/styles/createMuiTheme";
+import createPalette from "material-ui/styles/createPalette";
+import {grey, blue} from "material-ui/colors";
 
 const theme = createMuiTheme({
     palette: createPalette({
