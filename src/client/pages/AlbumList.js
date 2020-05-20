@@ -4,12 +4,12 @@ import React from 'react';
 import axios from "axios";
 import { withRouter } from "react-router-dom"
 
-import Button from "material-ui/Button";
-import { GridList, GridListTile, GridListTileBar } from "material-ui/GridList";
-import { CircularProgress } from 'material-ui/Progress';
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
-import withWidth from 'material-ui/utils/withWidth';
+import GridList from "@material-ui/core/GridList";
+import GridListTile from "@material-ui/core/GridListTile";
+import GridListTileBar from "@material-ui/core/GridListTileBar";
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { withStyles } from "@material-ui/styles";
+import withWidth from '@material-ui/core/withWidth';
 
 import moment from "moment-timezone";
 import compose from 'recompose/compose';
@@ -81,9 +81,9 @@ class AlbumList extends React.Component {
         this.fetchAlbums(this.props.match.params.year);
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.match.params.year != this.props.match.params.year) {
-            this.fetchAlbums(nextProps.match.params.year);
+    componentDidUpdate(prevProps) {
+        if (prevProps.match.params.year != this.props.match.params.year) {
+            this.fetchAlbums(this.props.match.params.year);
         }
     }
 
@@ -116,7 +116,7 @@ class AlbumList extends React.Component {
         ) {
             return (
                 <div className={classes.center}>
-                    <CircularProgress color="accent" size={128}/>
+                    <CircularProgress color="secondary" size={128}/>
                 </div>
             )
         }

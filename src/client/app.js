@@ -1,8 +1,6 @@
-// @flow
-
 import React from "react";
-import { render } from "react-dom";
-import Index from "./pages/index";
+import ReactDom from "react-dom";
+import Index from "./pages/Index";
 
 import "leaflet/dist/leaflet.css";
 
@@ -22,4 +20,4 @@ L.Marker.prototype.options.icon = L.icon({
     shadowSize: [41, 41]
 })
 
-render(<Index />, document.querySelector('#root'));
+ReactDom.render(<Index />, document.getElementById("root"));

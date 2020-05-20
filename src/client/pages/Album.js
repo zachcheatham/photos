@@ -2,16 +2,16 @@ const constants = require("../helpers/constants.js");
 
 import React from 'react';
 import axios from "axios";
-import { Route, withRouter } from "react-router-dom"
+import { withRouter } from "react-router-dom"
 
-import Button from "material-ui/Button";
-import { GridList, GridListTile, GridListTileBar } from "material-ui/GridList";
-import { CircularProgress } from 'material-ui/Progress';
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
-import withWidth from 'material-ui/utils/withWidth';
+import GridList from "@material-ui/core/GridList";
+import GridListTile from "@material-ui/core/GridListTile";
+import GridListTileBar from "@material-ui/core/GridListTileBar";
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { withStyles } from "@material-ui/styles";
+import Typography from "@material-ui/core/Typography";
+import withWidth from '@material-ui/core/withWidth';
 
-import moment from "moment-timezone";
 import compose from 'recompose/compose';
 
 import Container from "../components/Container"
@@ -86,14 +86,14 @@ class Album extends React.Component {
         );
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentDidUpdate(prevProps) {
         if (
-            nextProps.match.params.year != this.props.match.params.year ||
-            nextProps.match.params.album != this.props.match.params.album
+            prevProps.match.params.year != this.props.match.params.year ||
+            prevProps.match.params.album != this.props.match.params.album
         ) {
             this.fetchAlbums(
-                nextProps.match.params.year,
-                nextProps.match.params.album
+                this.props.match.params.year,
+                this.props.match.params.album
             );
         }
     }
@@ -129,7 +129,7 @@ class Album extends React.Component {
         ) {
             return (
                 <div className={classes.center}>
-                    <CircularProgress color="accent" size={128}/>
+                    <CircularProgress color="secondary" size={128}/>
                 </div>
             )
         }
@@ -153,7 +153,7 @@ class Album extends React.Component {
         else {
             return (
                 <Container>
-                    <Typography type="display1" gutterBottom>{this.props.match.params.album}</Typography>
+                    <Typography variant="h4" gutterBottom>{this.props.match.params.album}</Typography>
                     <GridList
                         cellHeight={cellHeight}
                         cols={columns}

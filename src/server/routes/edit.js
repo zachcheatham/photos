@@ -1,42 +1,14 @@
 const router = require("express").Router();
-const dns = require("dns");
-
-var recordLog = function(req, filename, key, value) {
-    var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-    if (ip.substr(0, 7) == "::ffff:") {
-        ip = ip.substr(7);
-    }
-    dns.reverse(ip, function(err, domains) {
-        var hostname = null;
-        if (!err) {
-            hostname = domains[0];
-        }
-
-        req.db.query(`
-            INSERT INTO \`edit_log\`
-            (\`filename\`, \`key\`, \`value\`, \`ip\`, \`hostname\`, \`timestamp\`)
-            VALUES(?, ?, ?, ?, ?, ?)`,
-            [
-                filename,
-                key,
-                value,
-                ip,
-                hostname,
-                (Math.floor(Date.now() / 1000))
-            ]
-        );
-    });
-}
 
 router.get("/rotate/:filename/:degrees", function(req, res) {
     const degrees = parseInt(req.params.degrees);
     const filename = req.params.filename;
 
     if (!isNaN(degrees)) {
-        req.db.query(
-            "UPDATE `photos` SET `rotation` = ? WHERE `filename` = ?",
+        req.db.run(
+            "UPDATE photos SET rotation = ? WHERE filename = ?",
             [degrees, filename],
-            function(error, results, fields) {
+            function(error) {
                 if (error) {
                     res.statusCode = 500;
                     res.json({
@@ -53,8 +25,6 @@ router.get("/rotate/:filename/:degrees", function(req, res) {
                         "filename": filename,
                         "degrees": degrees,
                     });
-
-                    recordLog(req, filename, "rotation", degrees);
                 }
             }
         );
@@ -71,44 +41,67 @@ router.get("/rotate/:filename/:degrees", function(req, res) {
 });
 
 router.post("/description/:filename/", function(req, res) {
-    console.log(req.body);
     if (req.body.description !== undefined) {
         var description = req.body.description;
         if (description.length == 0) {
             description = null;
         }
 
-        req.db.query(`
-            UPDATE \`photos\`, \`videos\`
-            SET
-                \`photos\`.\`comment\` = ?,
-                \`videos\`.\`comment\` = ?
-            WHERE
-                \`photos\`.\`filename\` = ? OR
-                \`videos\`.\`filename\` = ?`,
-            [description, description, req.params.filename, req.params.filename],
-            function(error, results, fields) {
-                if (error) {
-                    res.statusCode = 500;
-                    res.json({
-                        "success": false,
-                        "filename": req.params.filename,
-                        "description": description,
-                        "error": "database_error",
-                        "error_extra": error.code
-                    });
-                }
-                else {
-                    res.json({
-                        "success": true,
-                        "filename": req.params.filename,
-                        "description": description
-                    });
-
-                    recordLog(req, req.params.filename, "description", description);
-                }
+        req.db.get(`
+            SELECT 'photos' as type
+            FROM photos
+            WHERE filename = $file
+            UNION ALL
+            SELECT 'videos' as type
+            FROM videos
+            WHERE filename = $file
+        `, {$file: req.params.filename}, function(error, row) {
+            if (error) {
+                res.statusCode = 500;
+                res.json({
+                    "success": false,
+                    "filename": req.params.filename,
+                    "description": description,
+                    "error": "database_error",
+                    "error_extra": error.code
+                });
             }
-        );
+            else if (!row) {
+                res.statusCode = 404;
+                res.json({
+                    "success": false,
+                    "filename": req.params.filename,
+                    "description": description,
+                    "error": "not_found"
+                });
+            }
+            else {
+                req.db.run(`
+                    UPDATE ${row.type}
+                    SET comment = ?
+                    WHERE filename = ?;`,
+                [description, req.params.filename],
+                function(error) {
+                    if (error) {
+                        res.statusCode = 500;
+                        res.json({
+                            "success": false,
+                            "filename": req.params.filename,
+                            "description": description,
+                            "error": "database_error",
+                            "error_extra": error.code
+                        });
+                    }
+                    else {
+                        res.json({
+                            "success": true,
+                            "filename": req.params.filename,
+                            "description": description
+                        });
+                    }
+                });
+            }
+        });
     }
     else {
         res.statusCode = 400;

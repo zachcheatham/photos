@@ -1,10 +1,12 @@
 const THUMBNAIL_SIZE = 180 * 2;
-const THUMBNAIL_CACHE_PATH = "./content/thumbnails/"
 
 const ffmpeg = require("fluent-ffmpeg");
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
+
+const Constants = require("./constants");
+const THUMBNAIL_CACHE_PATH = `${Constants.DATA_DIR}/thumbnails/`;
 
 var methods = {}
 
@@ -37,7 +39,7 @@ methods.getPhotoThumbnail = function(filePath, callback) {
                 .then(function(buffer) {
                     if (callback) callback(buffer);
 
-                    fs.writeFile(
+                    fs.writeFileSync(
                         thumbnailPath,
                         buffer,
                         "binary"
@@ -79,9 +81,9 @@ methods.getVideoThumbnail = function(filePath, callback) {
                     .png()
                     .toBuffer()
                     .then(function(buffer) {
-                        fs.unlink(THUMBNAIL_CACHE_PATH + tempThumbnailName);
+                        fs.unlinkSync(THUMBNAIL_CACHE_PATH + tempThumbnailName);
                         if (callback) callback(buffer);
-                        fs.writeFile(
+                        fs.writeFileSync(
                             thumbnailPath,
                             buffer,
                             "binary"

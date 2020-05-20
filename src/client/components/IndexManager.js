@@ -1,47 +1,47 @@
 const constants = require("../helpers/constants.js");
 
-import React from 'react';
+import React from "react";
 import axios from "axios";
 
-import AppBar from "material-ui/AppBar";
-import Button from "material-ui/Button";
-import { grey, orange, red } from 'material-ui/colors';
-import Dialog, {DialogContent} from 'material-ui/Dialog';
-import IconButton from "material-ui/IconButton";
-import { LinearProgress } from 'material-ui/Progress';
-import Toolbar from 'material-ui/Toolbar';
-import Typography from 'material-ui/Typography';
-import withWidth from 'material-ui/utils/withWidth';
-import { withStyles, createStyleSheet } from 'material-ui/styles';
+import AppBar from "@material-ui/core/AppBar";
+import Button from "@material-ui/core/Button";
+import { grey, orange, red } from "@material-ui/core/colors";
+import Dialog, {DialogContent} from "@material-ui/core/Dialog";
+import IconButton from "@material-ui/core/IconButton";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import withWidth from "@material-ui/core/withWidth";
+import { withStyles, createStyleSheet } from "@material-ui/styles";
 
-import CachedIcon from "material-ui-icons/Cached";
-import CheckIcon from "material-ui-icons/Check";
-import CloseIcon from "material-ui-icons/Close";
-import CloudOffIcon from "material-ui-icons/CloudOff";
-import CompareArrowsIcon from "material-ui-icons/CompareArrows";
+import CachedIcon from "@material-ui/icons/Cached";
+import CheckIcon from "@material-ui/icons/Check";
+import CloseIcon from "@material-ui/icons/Close";
+import CloudOffIcon from "@material-ui/icons/CloudOff";
+import CompareArrowsIcon from "@material-ui/icons/CompareArrows";
 
 import moment from "moment";
 
-import compose from 'recompose/compose';
+import compose from "recompose/compose";
 
-const MODE_NOTHING = 0;
-const MODE_PHOTOS = 1;
-const MODE_VIDEOS = 2;
-const MODE_CLEANING = 3;
-const MODE_FINISHED = 4;
+const STAGE_NONE=0;
+const STAGE_INDEX=1;
+const STAGE_PROCESS=2;
+const STAGE_STATS_CACHE=3;
+const STAGE_COMPLETE=4;
 
 const styles = theme => ({
     appBar: {
         borderRadius: "2px 2px 0 0"
     },
     dialogContainer: {
-        padding: theme.spacing.unit
+        padding: theme.spacing(1)
     },
     flex: {
         flex: "1"
     },
     button: {
-        margin: theme.spacing.unit,
+        margin: theme.spacing(1),
     },
     floatright: {
         float: "right",
@@ -49,10 +49,10 @@ const styles = theme => ({
     },
     netError: {
         color: theme.palette.error.A400,
-        marginBottom: theme.spacing.unit
+        marginBottom: theme.spacing(1)
     },
     icon: {
-        margin: theme.spacing.unit,
+        margin: theme.spacing(1),
         verticalAlign: "middle"
     },
     statusIcon: {
@@ -87,19 +87,11 @@ const styles = theme => ({
 class IndexManager extends React.Component {
     state = {
         connectionFailed: false,
-        mode: MODE_NOTHING,
-        photosStartTime: 0,
-        photosStopTime: 0,
-        videosStartTime: 0,
-        videosStopTime: 0,
-        readingDirectories: false,
-        photosCompleted: false,
-        photosTotal: 0,
-        photosCompleted: 0,
-        photosPercent: 0,
-        videosTotal: 0,
-        videosCompleted: 0,
-        videosPercent: 0,
+        stage: STAGE_NONE,
+        completed: 0,
+        total: 0,
+        time: "",
+        percent: 0,
         errors: []
     }
 
@@ -116,46 +108,30 @@ class IndexManager extends React.Component {
     fetchStatus = () => {
         axios.get(constants.API_URL + "/update-index/status")
             .then((response) => {
-                var photosP = 0;
-                if (response.data.photos_total != 0) {
-                    photosP = response.data.photos_completed / response.data.photos_total * 100;
+                var percent = 0;
+                if (response.data.total_files != 0) {
+                    percent = response.data.completed_files / response.data.total_files * 100;
                 }
 
-                var videosP = 0;
-                if (response.data.videos_total != 0) {
-                    videosP = response.data.videos_completed / response.data.videos_total * 100;
-                }
+                var timePassed = 0;
+                if (response.data.stage != STAGE_NONE && response.data.stage != STAGE_COMPLETE)
+                    timePassed = Date.now() - response.data.start_time * 1000;
+                else if (response.data.stage == STAGE_COMPLETE)
+                    timePassed = (response.data.stop_time - response.data.start_time) * 1000;
 
-                var photosTime = 0;
-                if (response.data.mode == MODE_PHOTOS)
-                    photosTime = Date.now() - response.data.photos_start_time * 1000;
-                else
-                    photosTime = (response.data.photos_stop_time - response.data.photos_start_time) * 1000;
-                var photosTimeString = moment.utc(photosTime).format("HH:mm:ss");
-
-                var videosTime = 0;
-                if (response.data.mode == MODE_VIDEOS)
-                    videosTime = Date.now() - response.data.videos_start_time * 1000;
-                else
-                    videosTime = (response.data.videos_stop_time - response.data.videos_start_time) * 1000;
-                var videosTimeString = moment.utc(videosTime).format("HH:mm:ss");
+                var timeString = moment.utc(timePassed).format("HH:mm:ss");
 
                 this.setState({
                     connectionFailed: false,
-                    mode: response.data.mode,
-                    readingDirectories: response.data.reading_directories,
-                    photosCompleted: response.data.photos_completed,
-                    photosTotal: response.data.photos_total,
-                    photosTime: photosTimeString,
-                    photosPercent: photosP,
-                    videosCompleted: response.data.videos_completed,
-                    videosTotal: response.data.videos_total,
-                    videosTime: videosTimeString,
-                    videosPercent: videosP,
+                    stage: response.data.stage,
+                    completed: response.data.completed_files,
+                    total: response.data.total_files,
+                    time: timeString,
+                    percent: percent,
                     errors: response.data.errors
                 });
 
-                if (response.data.mode != MODE_FINISHED && this.props.open) {
+                if (response.data.stage != STAGE_COMPLETE && this.props.open) {
                     setTimeout(() => {
                         this.fetchStatus()
                     }, 1000);
@@ -170,19 +146,11 @@ class IndexManager extends React.Component {
                     if (error.response.data.error == "no_activity") {
                         this.setState({
                             connectionFailed: false,
-                            mode: MODE_NOTHING,
-                            photosStartTime: 0,
-                            photosStopTime: 0,
-                            videosStartTime: 0,
-                            videosStopTime: 0,
-                            readingDirectories: false,
-                            photosCompleted: false,
-                            photosTotal: 0,
-                            photosCompleted: 0,
-                            photosPercent: 0,
-                            videosTotal: 0,
-                            videosCompleted: 0,
-                            videosPercent: 0,
+                            stage: STAGE_NONE,
+                            completed: 0,
+                            total: 0,
+                            time: 0,
+                            percent: 0,
                             errors: []
                         });
                     }
@@ -190,8 +158,8 @@ class IndexManager extends React.Component {
             });
     };
 
-    componentWillReceiveProps(nextProps) {
-        if (!this.props.open && nextProps.open) {
+    componentDidUpdate(prevProps) {
+        if (this.props.open && !prevProps.open) {
             this.fetchStatus();
         }
     }
@@ -202,28 +170,30 @@ class IndexManager extends React.Component {
         return (
             <Dialog
                 open={this.props.open}
-                onRequestClose={this.props.onRequestClose}
+                onClose={this.props.onClose}
                 fullScreen={this.props.width == "xs"}
             >
                 <AppBar className={classes.appBar} position="static" color="default">
                     <Toolbar>
                         <IconButton
+                            edge="start"
                             color="inherit"
                             aria-label="Close Index Manager"
-                            onClick={this.props.onRequestClose}
+                            onClick={this.props.onClose}
                         >
                             <CloseIcon />
                         </IconButton>
-                        <Typography type="title" color="inherit" className={classes.flex}>
+                        <Typography variant="h6" color="inherit" className={classes.flex}>
                             Index Manager
                         </Typography>
                         <Button
-                            color="accent"
-                            disabled={this.state.connectionFailed || (this.state.mode != MODE_FINISHED && this.state.mode != MODE_NOTHING)}
+                            edge="end"
+                            color="secondary"
+                            disabled={this.state.connectionFailed || (this.state.stage != STAGE_COMPLETE && this.state.stage != STAGE_NONE)}
                             className={classes.button}
                             onClick={this.initiate}
                         >
-                            {(this.state.mode != MODE_FINISHED && this.state.mode) ? "Running..." : "Start"}
+                            {(this.state.stage != STAGE_COMPLETE && this.state.stage) ? "Running..." : "Start"}
                         </Button>
                     </Toolbar>
                 </AppBar>
@@ -233,26 +203,16 @@ class IndexManager extends React.Component {
                         Connection Failed
                     </Typography>
                     <Typography color="inherit" gutterBottom>
-                        {this.state.readingDirectories && this.state.mode == MODE_PHOTOS ? <CompareArrowsIcon className={classes.statusIcon} /> : ""}
-                        {!this.state.readingDirectories && this.state.mode == MODE_PHOTOS ? <CachedIcon className={classes.statusIcon} /> : ""}
-                        {this.state.mode > MODE_PHOTOS ? <CheckIcon className={classes.statusIcon} /> : ""}
-                        Photos ({this.state.photosCompleted} / {this.state.photosTotal})
-                        <span className={(this.state.mode >= MODE_PHOTOS) ? classes.floatright : classes.hidden}>
-                            {this.state.photosTime}
+                        {this.state.stage == STAGE_INDEX ? <span><CompareArrowsIcon className={classes.statusIcon} /> Finding files... </span> : ""}
+                        {this.state.stage == STAGE_STATS_CACHE ? <span><CompareArrowsIcon className={classes.statusIcon} /> Updating statistics... </span> : ""}
+                        {this.state.stage == STAGE_PROCESS ? <span><CachedIcon className={classes.statusIcon} /> Processing media... </span> : ""}
+                        {this.state.stage == STAGE_COMPLETE ? <span><CheckIcon className={classes.statusIcon} /> Completed. </span> : ""}
+                        ({this.state.completed} / {this.state.total})
+                        <span className={(this.state.stage >= STAGE_PROCESS) ? classes.floatright : classes.hidden}>
+                            {this.state.time}
                         </span>
                     </Typography>
-                    <LinearProgress color="accent" mode="determinate" value={this.state.photosPercent} />
-                    <br />
-                    <Typography color="inherit" gutterBottom>
-                        {this.state.readingDirectories && this.state.mode == MODE_VIDEOS ? <CompareArrowsIcon className={classes.statusIcon} /> : ""}
-                        {!this.state.readingDirectories && this.state.mode == MODE_VIDEOS ? <CachedIcon className={classes.statusIcon} /> : ""}
-                        {this.state.mode > MODE_VIDEOS ? <CheckIcon className={classes.statusIcon} /> : ""}
-                        Videos ({this.state.videosCompleted} / {this.state.videosTotal})
-                        <span className={(this.state.mode >= MODE_VIDEOS) ? classes.floatright : classes.hidden}>
-                            {this.state.videosTime}
-                        </span>
-                    </Typography>
-                    <LinearProgress color="accent" mode="determinate" value={this.state.videosPercent} />
+                    <LinearProgress color="secondary" variant="determinate" value={this.state.percent} />
                     <br />
                     <Typography color="inherit">Errors</Typography>
                     <div className={classes.errorsContainer}>
@@ -267,7 +227,7 @@ class IndexManager extends React.Component {
                         })}
                     </div>
                     <br />
-                    <Typography type="caption">It is safe to close this window.</Typography>
+                    <Typography variant="subtitle2">It is safe to close this window.</Typography>
                 </div>
             </Dialog>
         );

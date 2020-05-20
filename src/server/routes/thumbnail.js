@@ -1,5 +1,7 @@
 const router = require("express").Router();
 const fs = require("fs");
+
+const Constants = require("../helpers/constants");
 const thumbnails = require("../helpers/thumbnails");
 
 router.get("/album/:year/:album", function(req, res) {
@@ -16,10 +18,9 @@ router.get("/album/:year/:album", function(req, res) {
         });
     }
     else {
-        req.db.query(
-            "SELECT COUNT(*) as `c` FROM `albums` WHERE `year` = ? AND `album` = ?",
+        req.db.get("SELECT COUNT(1) as cnt FROM albums WHERE year = ? AND album = ?",
             [year, album],
-            function(error, results, fields) {
+            function(error, row) {
                 if (error) {
                     res.statusCode = 500;
                     res.json({
@@ -27,11 +28,11 @@ router.get("/album/:year/:album", function(req, res) {
                         "year": year,
                         "album": album,
                         "error": "database_error",
-                        "error_extra": error.code
+                        "error_extra": error
                     });
                 }
                 else {
-                    var exists = results[0].c > 0;
+                    var exists = row.cnt > 0;
                     if (!exists) {
                         res.statusCode = 404;
                         res.json({
@@ -42,20 +43,20 @@ router.get("/album/:year/:album", function(req, res) {
                         });
                     }
                     else {
-                        req.db.query(`
+                        req.db.get(`
                             SELECT
-                                \`filename\`,
-                                \`type\`
+                                filename,
+                                type
                             FROM
                             (
-                                SELECT \`filename\`, "videos" as \`type\` FROM \`videos\` WHERE \`album\` = ? AND \`year\` = ?
+                                SELECT filename, "videos" as type FROM videos WHERE album = $album AND year = $year
                                 UNION ALL
-                                SELECT \`filename\`, "photos" as \`type\` FROM \`photos\` WHERE \`album\` = ? AND \`year\` = ?
-                            ) \`media\`
-                            ORDER BY RAND()
+                                SELECT filename, "photos" as type FROM photos WHERE album = $album AND year = $year
+                            ) media
+                            ORDER BY RANDOM()
                             LIMIT 1`,
-                            [album, year, album, year],
-                            function(error, results, fields) {
+                            {$album: album, $year: year},
+                            function(error, row) {
                                 if (error) {
                                     res.statusCode = 500;
                                     res.json({
@@ -66,7 +67,7 @@ router.get("/album/:year/:album", function(req, res) {
                                         "error_extra": error.code
                                     });
                                 }
-                                else if (results.length == 0) {
+                                else if (!row) {
                                     res.statusCode = 404;
                                     res.json({
                                         "success": false,
@@ -76,15 +77,15 @@ router.get("/album/:year/:album", function(req, res) {
                                     });
                                 }
                                 else {
-                                    var result = results[0];
-                                    var filePath = `./content/${result.type}/${year}/${album}/${result.filename}`;
-                                    if (result.type == "photos") {
+                                    if (row.type == "photos") {
+                                        var filePath = `${Constants.PHOTOS_DIR}/${year}/${album}/${row.filename}`
                                         thumbnails.getPhotoThumbnail(filePath, function(data) {
                                             res.writeHead(200, {"Content-Type": "image/png"});
                                             res.end(data, "binary");
                                         });
                                     }
-                                    else if (result.type == "videos") {
+                                    else if (row.type == "videos") {
+                                        var filePath = `${Constants.VIDEOS_DIR}/${year}/${album}/${row.filename}`
                                         thumbnails.getVideoThumbnail(filePath, function(data) {
                                             res.writeHead(200, {"Content-Type": "image/png"});
                                             res.end(data, "binary");
@@ -103,21 +104,21 @@ router.get("/album/:year/:album", function(req, res) {
 router.get("/:filename", function(req, res) {
     const filename = req.params.filename;
 
-    req.db.query(`
+    req.db.get(`
         SELECT
-            \`year\`,
-            \`album\`,
-            \`type\`
+            year,
+            album,
+            type
         FROM
         (
-            SELECT \`year\`, \`album\`, "videos" as \`type\` FROM \`videos\` WHERE \`filename\` = ?
+            SELECT year, album, "videos" as type FROM videos WHERE filename = $file
             UNION ALL
-            SELECT \`year\`, \`album\`, "photos" as \`type\` FROM \`photos\` WHERE \`filename\` = ?
-        ) \`media\`
-        ORDER BY RAND()
+            SELECT year, album, "photos" as type FROM photos WHERE filename = $file
+        ) media
+        ORDER BY RANDOM()
         LIMIT 1`,
-        [filename, filename],
-        function(error, results, fields) {
+        {$file: filename},
+        function(error, row) {
             if (error) {
                 res.statusCode = 500;
                 res.json({
@@ -127,7 +128,7 @@ router.get("/:filename", function(req, res) {
                     "error_extra": error.code
                 });
             }
-            else if (results.length == 0) {
+            else if (!row) {
                 res.statusCode = 404;
                 res.json({
                     "success": false,
@@ -136,15 +137,22 @@ router.get("/:filename", function(req, res) {
                 });
             }
             else {
-                var result = results[0];
-                var filePath = `./content/${result.type}/${result.year}/${result.album}/${filename}`;
-                if (result.type == "photos") {
+                var contentRoot = ""
+                if (row.type == "photos") {
+                    contentRoot = Constants.PHOTOS_DIR;
+                }
+                else {
+                    contentRoot = Constants.VIDEOS_DIR;
+                }
+
+                const filePath = `${contentRoot}/${row.year}/${row.album}/${filename}`;
+                if (row.type == "photos") {
                     thumbnails.getPhotoThumbnail(filePath, function(data) {
                         res.writeHead(200, {"Content-Type": "image/png"});
                         res.end(data, "binary");
                     });
                 }
-                else if (result.type == "videos") {
+                else if (row.type == "videos") {
                     thumbnails.getVideoThumbnail(filePath, function(data) {
                         res.writeHead(200, {"Content-Type": "image/png"});
                         res.end(data, "binary");

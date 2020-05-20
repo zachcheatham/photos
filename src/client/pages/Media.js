@@ -6,26 +6,27 @@ import { withRouter } from "react-router-dom"
 import axios from "axios";
 import { Map, Marker, TileLayer } from "react-leaflet";
 
-import Avatar from "material-ui/Avatar";
-import Grid from "material-ui/Grid";
-import IconButton from "material-ui/IconButton";
-import List, { ListItem, ListItemIcon, ListItemSecondaryAction, ListItemText, ListSubheader } from "material-ui/List";
-import Modal from "material-ui/internal/Modal";
-import { CircularProgress } from "material-ui/Progress";
-import { withStyles } from "material-ui/styles";
-import TextField from "material-ui/TextField";
-import Toolbar from "material-ui/Toolbar";
-import Typography from "material-ui/Typography";
+import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListSubheader from "@material-ui/core/ListSubheader";
+import Modal from "@material-ui/core/Modal";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import { withStyles } from "@material-ui/styles";
+import TextField from "@material-ui/core/TextField";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
 
-import CameraIcon from "material-ui-icons/Camera"
-import CloseIcon from "material-ui-icons/Close"
-import ImageIcon from "material-ui-icons/Image"
-import InsertInvitationIcon from "material-ui-icons/InsertInvitation"
-import LensIcon from "material-ui-icons/Lens"
-import ModeEditIcon from "material-ui-icons/ModeEdit"
-import LocationOnIcon from "material-ui-icons/LocationOn"
-import VideocamIcon from "material-ui-icons/Videocam"
-import VolumeUpIcon from "material-ui-icons/VolumeUp"
+import CameraIcon from "@material-ui/icons/Camera"
+import CloseIcon from "@material-ui/icons/Close"
+import ImageIcon from "@material-ui/icons/Image"
+import InsertInvitationIcon from "@material-ui/icons/InsertInvitation"
+import LocationOnIcon from "@material-ui/icons/LocationOn"
+import VideocamIcon from "@material-ui/icons/Videocam"
+import VolumeUpIcon from "@material-ui/icons/VolumeUp"
 
 import moment from "moment-timezone";
 
@@ -101,12 +102,12 @@ const styles = (theme) => ({
         flex: 1
     },
     infoContent: theme.mixins.gutters({
-        paddingTop: theme.spacing.unit * 2,
-        paddingBottom: theme.spacing.unit * 2,
+        paddingTop: theme.spacing(2),
+        paddingBottom: theme.spacing(2),
     }),
     listPadding: theme.mixins.gutters({}),
     iconAdjustment: {
-        right: theme.spacing.unit * 2 + 4,
+        right: theme.spacing(2) + 4,
     },
 });
 
@@ -233,19 +234,19 @@ class Media extends React.Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.filename != this.props.filename) {
+    componentDidUpdate(prevProps) {
+        if (prevProps.filename != this.props.filename) {
             this.setState({
                 info: false,
                 type: false
             });
 
-            if (nextProps.filename) {
-                this.getMediaInfo(nextProps.filename);
+            if (this.props.filename) {
+                this.getMediaInfo(this.props.filename);
             }
         }
 
-        if (!nextProps.show && this.props.show) {
+        if (prevProps.show && !this.props.show) {
             this.setState({
                 showInfo: false
             })
@@ -259,8 +260,7 @@ class Media extends React.Component {
 
         return (
             <Modal
-                show={this.props.show}
-                disableBackdrop={true}
+                open={this.props.show}
             >
                 <div className={`${classes.main} ${!this.state.type ? classes.mainLoading : ""}`}>
                     {this.state.type == "photo" ?
@@ -280,14 +280,14 @@ class Media extends React.Component {
                             info={this.state.info}
                         />
                     :
-                        <CircularProgress color="accent" size={50} />
+                        <CircularProgress color="secondary" size={50} />
                     }
 
                     <div className={`${classes.info} ${this.state.showInfo ? "" : classes.hiddenInfo}`}>
                         <div className={classes.infoInner}>
                             <div className={classes.appBar}>
                                 <Toolbar>
-                                    <Typography type="title" className={classes.flex}>
+                                    <Typography variant="h6" className={classes.flex}>
                                         Info
                                     </Typography>
                                     <IconButton onClick={this.requestInfoToggle}>
@@ -328,7 +328,7 @@ class Media extends React.Component {
                                     BUG https://github.com/callemall/material-ui/issues/4787 DateTimePicker not supported
                                     <ListItemSecondaryAction className={classes.iconAdjustment}>
                                         <IconButton>480p 60fps h264
-                                            <ModeEditIcon />
+                                            <ModeEditIcon />79
                                         </IconButton>
                                     </ListItemSecondaryAction>
                                     */}
@@ -340,24 +340,24 @@ class Media extends React.Component {
                                     <ListItemText
                                         disableTypography={true}
                                         primary={
-                                            <Typography type="subheading">
+                                            <Typography variant="subtitle1">
                                                 {this.props.filename}
                                             </Typography>
                                         }
                                         secondary={
                                             <Grid container justify="space-between">
                                                 <Grid item>
-                                                    <Typography color="secondary" type="body1">
+                                                    <Typography color="textSecondary" variant="body2">
                                                         {this.state.info ? Math.round(this.state.info.width * this.state.info.height / 1000000) : ""}MP
                                                     </Typography>
                                                 </Grid>
                                                 <Grid item>
-                                                    <Typography color="secondary" type="body1">
+                                                    <Typography color="textSecondary" variant="body2">
                                                         {this.state.info ? this.state.info.width + " × " + this.state.info.height : ""}
                                                     </Typography>
                                                 </Grid>
                                                 <Grid item>
-                                                    <Typography color="secondary" type="body1">
+                                                    <Typography color="textSecondary" variant="body2">
                                                         {this.state.info ? formatBytes(this.state.info.filesize) : ""}
                                                     </Typography>
                                                 </Grid>
@@ -373,7 +373,7 @@ class Media extends React.Component {
                                         <ListItemText
                                             disableTypography={true}
                                             primary={
-                                                <Typography type="subheading">
+                                                <Typography variant="subtitle1">
                                                     {this.state.info.show_make ? this.state.info.make + " " + this.state.info.model : this.state.info.model}
                                                 </Typography>
                                             }
@@ -387,28 +387,28 @@ class Media extends React.Component {
                                                     <Grid container justify="space-between">
                                                         {this.state.info && this.state.info.fnumber ?
                                                             <Grid item>
-                                                                <Typography color="secondary" type="body1">
+                                                                <Typography color="textSecondary" variant="body2">
                                                                     f/{this.state.info.fnumber}
                                                                 </Typography>
                                                             </Grid>
                                                         : ""}
                                                         {this.state.info && this.state.info.exposure_time ?
                                                             <Grid item>
-                                                                <Typography color="secondary" type="body1">
+                                                                <Typography color="textSecondary" variant="body2">
                                                                     1/{Math.round(1/this.state.info.exposure_time)}
                                                                 </Typography>
                                                             </Grid>
                                                         : ""}
                                                         {this.state.info && this.state.info.focal_length ?
                                                             <Grid item>
-                                                                <Typography color="secondary" type="body1">
+                                                                <Typography color="textSecondary" variant="body2">
                                                                     {this.state.info.focal_length}mm
                                                                 </Typography>
                                                             </Grid>
                                                         : ""}
                                                         {this.state.info && this.state.info.iso ?
                                                             <Grid item>
-                                                                <Typography color="secondary" type="body1">
+                                                                <Typography color="textSecondary" variant="body2">
                                                                     ISO{this.state.info.iso}
                                                                 </Typography>
                                                             </Grid>
@@ -427,24 +427,24 @@ class Media extends React.Component {
                                         <ListItemText
                                             disableTypography={true}
                                             primary={
-                                                <Typography type="subheading">
+                                                <Typography>
                                                     {this.state.info.video_codec}
                                                 </Typography>
                                             }
                                             secondary={
                                                 <Grid container justify="space-between">
                                                     <Grid item>
-                                                        <Typography color="secondary" type="body1">
+                                                        <Typography color="textSecondary" variant="body2">
                                                             {this.state.info.height}{this.state.info.scanning_method.toLowerCase()}
                                                         </Typography>
                                                     </Grid>
                                                     <Grid item>
-                                                        <Typography color="secondary" type="body1">
+                                                        <Typography color="textSecondary" variant="body2">
                                                             {Math.round(this.state.info.framerate)}fps
                                                         </Typography>
                                                     </Grid>
                                                     <Grid item>
-                                                        <Typography color="secondary" type="body1">
+                                                        <Typography color="textSecondary" variant="body2">
                                                             {calculateAspect(this.state.info.width, this.state.info.height)}
                                                         </Typography>
                                                     </Grid>
@@ -461,24 +461,24 @@ class Media extends React.Component {
                                         <ListItemText
                                             disableTypography={true}
                                             primary={
-                                                <Typography type="subheading">
+                                                <Typography variant="subtitle1">
                                                     {this.state.info.audio_codec}
                                                 </Typography>
                                             }
                                             secondary={
                                                 <Grid container justify="space-between">
                                                     <Grid item>
-                                                        <Typography color="secondary" type="body1">
+                                                        <Typography color="textSecondary" variant="body2">
                                                             {formatBits(this.state.info.audio_bitrate)}ps&nbsp;
                                                         </Typography>
                                                     </Grid>
                                                     <Grid item>
-                                                        <Typography color="secondary" type="body1">
+                                                        <Typography color="textSecondary" variant="body2">
                                                             {this.state.info.audio_sample_rate}hz
                                                         </Typography>
                                                     </Grid>
                                                     <Grid item>
-                                                        <Typography color="secondary" type="body1">
+                                                        <Typography color="textSecondary" variant="body2">
                                                             {this.state.info.audio_channel_layout.charAt(0).toUpperCase() + this.state.info.audio_channel_layout.substr(1)}
                                                         </Typography>
                                                     </Grid>

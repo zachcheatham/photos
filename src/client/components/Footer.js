@@ -1,16 +1,16 @@
 import React from "react";
 
-import Divider from "material-ui/Divider";
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
+import Divider from "@material-ui/core/Divider";
+import { withStyles } from "@material-ui/styles";
+import Typography from "@material-ui/core/Typography";
 
 const styles = theme => ({
     container: theme.mixins.gutters({
-        paddingTop: theme.spacing.unit * 2,
-        paddingBottom: theme.spacing.unit * 2
+        paddingTop: theme.spacing(2),
+        paddingBottom: theme.spacing(2)
     }),
     footDivider: {
-        marginBottom: theme.spacing.unit
+        marginBottom: theme.spacing(1)
     }
 });
 
@@ -20,7 +20,7 @@ class Container extends React.Component {
         return (
             <div className={classes.container}>
                 <Divider className={classes.footDivider}/>
-                <Typography type="caption">Zach Cheatham</Typography>
+                <Typography variant="subtitle2">Zach Cheatham</Typography>
             </div>
         );
     }

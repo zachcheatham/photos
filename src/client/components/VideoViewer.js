@@ -1,19 +1,18 @@
 const constants = require("../helpers/constants.js");
 import React from 'react';
 
-import IconButton from "material-ui/IconButton";
-import { CircularProgress } from "material-ui/Progress";
-import { withStyles } from "material-ui/styles";
-import Toolbar from "material-ui/Toolbar";
+import IconButton from "@material-ui/core/IconButton";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import { withStyles } from "@material-ui/styles";
+import Toolbar from "@material-ui/core/Toolbar";
 
-import ArrowBackIcon from "material-ui-icons/ArrowBack";
-import FileDownloadIcon from "material-ui-icons/FileDownload";
-import Forward10Icon from "material-ui-icons/Forward10";
-import InfoIcon from "material-ui-icons/Info";
-import PauseIcon from "material-ui-icons/Pause";
-import PlayArrowIcon from "material-ui-icons/PlayArrow";
-import MoreVertIcon from "material-ui-icons/MoreVert";
-import Replay10Icon from "material-ui-icons/Replay10";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+import GetAppIcon from "@material-ui/icons/GetApp";
+import Forward10Icon from "@material-ui/icons/Forward10";
+import InfoIcon from "@material-ui/icons/Info";
+import PauseIcon from "@material-ui/icons/Pause";
+import PlayArrowIcon from "@material-ui/icons/PlayArrow";
+import Replay10Icon from "@material-ui/icons/Replay10";
 
 const styles = (theme) => ({
     main: {
@@ -185,7 +184,7 @@ class VideoViewer extends React.Component {
                         <span className={classes.flex}></span>
 
                         <IconButton color="inherit">
-                            <FileDownloadIcon />
+                            <GetAppIcon />
                         </IconButton>
                         <IconButton
                             color="inherit"
@@ -209,7 +208,7 @@ class VideoViewer extends React.Component {
                     <source src={`${constants.API_URL}/media/${this.props.filename}`} />
                 </video>
                 {this.state.videoLoading ?
-                    <CircularProgress color="accent" size={50} />
+                    <CircularProgress color="secondary" size={50} />
                 :
                     ""
                 }

@@ -1,206 +1,206 @@
 const router = require("express").Router();
 const fs = require("fs");
+
+const Constants = require("../helpers/constants");
 const Photo = require("../models/Photo")
 const Video = require("../models/Video")
 
-const MODE_NONE = 0;
-const MODE_PHOTOS = 1;
-const MODE_VIDEOS = 2;
-const MODE_STATS = 3;
-const MODE_FINISHED = 4;
+const PHOTOS=0
+const VIDEOS=1
+
+const STAGE_NONE=0;
+const STAGE_INDEX=1;
+const STAGE_PROCESS=2;
+const STAGE_STATS_CACHE=3;
+const STAGE_COMPLETE=4;
 
 var db;
 
-var updating = false;
-var mode = MODE_NONE;
-var directoryProcesses = 0;
-var processingFiles = false;
-
-var pendingFiles = [];
-var modifiedAlbums = [];
-var modifiedYears = [];
-
-var timePhotosStarted = 0;
-var timePhotosFinished = 0;
-var timeVideosStarted = 0;
-var timeVideosFinished = 0;
-var completedPhotos = 0;
-var totalPhotos = 0;
-var completedVideos = 0;
-var totalVideos = 0;
+var stage = STAGE_NONE;
 var errors = [];
 
-function resetProcessVariables() {
-    timePhotosStarted = 0;
-    timePhotosFinished = 0;
-    timeVideosStarted = 0;
-    timeVideosFinished = 0;
-    completedPhotos = 0;
-    totalPhotos = 0;
-    completedVideos = 0;
-    totalVideos = 0;
+var timeStarted = 0;
+var timeCompleted = 0;
+var processCount = 0;
+var totalMedia = 0;
+var completedMedia = 0;
+var files = [];
+var modifiedYears = [];
+var modifiedAlbums = [];
+
+function updateIndex() {
     errors = [];
+    stage = STAGE_INDEX;
+    totalMedia = 0;
+    completedMedia = 0;
+    timeStarted = Math.floor(Date.now() / 1000);
+    timeCompleted = 0;
+
+    gatherFiles(PHOTOS, Constants.PHOTOS_DIR); // Gather photos files
+    gatherFiles(VIDEOS, Constants.VIDEOS_DIR); // Gather videos files
 }
 
-function recordError(type, message) {
-    console.log("[" + type + "] " + message);
-    errors.push({'t': type, 'm': message});
-}
-
-function updatePhotoIndex() {
-    console.log("Photo indexing started.")
-    updating = true;
-    mode = MODE_PHOTOS;
-    timePhotosStarted = Math.floor(Date.now() / 1000);
-    readFolder("./content/photos");
-}
-
-function updateVideoIndex() {
-    console.log("Video indexing started.")
-    updating = true;
-    mode = MODE_VIDEOS;
-    timeVideosStarted = Math.floor(Date.now() / 1000);
-    readFolder("./content/videos");
-}
-
-function finished() {
-    updating = false;
-    mode = MODE_FINISHED;
-
-    console.log("");
-    console.log("Finished updating index!");
-    console.log("");
-}
-
-function updateStats() {
-    console.log("Updating indexes and cached statistics...");
-    mode = MODE_STATS;
-
-    for (var i = 0; i < modifiedAlbums.length; i ++) {
-        var album = modifiedAlbums[i].split("/");
-        var queryString = `
-            REPLACE INTO \`albums\`(\`album\`, \`year\`, \`photos\`, \`videos\`, \`time_start\`, \`time_end\`)
-            SELECT
-                ?,
-                ?,
-                (SELECT COUNT(*) FROM \`photos\` WHERE \`album\` = ? AND \`year\` = ?),
-                (SELECT COUNT(*) FROM \`videos\`WHERE \`album\` = ? AND \`year\` = ?),
-                MIN(\`timestamp\`),
-                MAX(\`timestamp\`)
-            FROM
-                (
-                    SELECT \`filename\`, \`album\`, \`year\`, \`timestamp\` FROM \`videos\` WHERE \`album\` = ? AND \`year\` = ? AND \`suspect_time\` = 0
-                    UNION ALL
-                    SELECT \`filename\`, \`album\`, \`year\`, \`timestamp\` FROM \`photos\` WHERE \`album\` = ? AND \`year\` = ? AND \`suspect_time\` = 0
-                ) \`media\`
-        `;
-
-        db.query(queryString, [
-            album[1], album[0],
-            album[1], album[0],
-            album[1], album[0],
-            album[1], album[0],
-            album[1], album[0]
-        ]);
-    }
-
+function updateCompleted() {
+    stage = STAGE_COMPLETE;
+    files = [];
     modifiedAlbums = [];
+    modifiedYears = [];    
+    timeCompleted = Math.floor(Date.now() / 1000);
 
-    for (var i = 0; i < modifiedYears.length; i++) {
-        var queryString = `
-            REPLACE INTO \`years\` (\`year\`, \`albums\`, \`photos\`, \`videos\`)
-            SELECT
-                ?,
-                (SELECT COUNT(*) FROM \`albums\` WHERE \`year\` = ?),
-                (SELECT COUNT(*) FROM \`photos\` WHERE \`year\` = ?),
-                (SELECT COUNT(*) FROM \`videos\`WHERE \`year\` = ?)
-        `;
-        db.query(queryString, [modifiedYears[i], modifiedYears[i], modifiedYears[i], modifiedYears[i]]);
-    }
-
-    modifiedYears = [];
-    finished();
+    console.log("Indexer completed.");
 }
 
-function photosFinished() {
-    timePhotosFinished = Math.floor(Date.now() / 1000);
-    mode = MODE_NONE;
+function gatherFiles(mediaType, directory, level=0) {
+    console.log(`Gathering ${mediaType == PHOTOS ? "photo" : "video"} files at ${directory} (Level ${level})...`);
 
-    console.log("");
-    console.log("Photos finished!");
-    console.log("");
+    // Keep track of how many async procsesses are running
+    processCount++;
 
-    updateVideoIndex();
-}
+    fs.readdir(directory, (err, dirFiles) => {
+        if (dirFiles) {
+            for (var i = 0; i < dirFiles.length; i++) {
+                var fullPath = `${directory}/${dirFiles[i]}`;
+                var stat = fs.statSync(fullPath);
+                if (stat) {
+                    if (stat.isDirectory()) {
+                        if (level < 2) { // Level 1=Year, Level 2=Album
+                            if (level == 0 && isNaN(parseInt(dirFiles[i]))) {
+                                recordError('w', `Expected year at directory: ${fullPath}.`);
+                            }
+                            else {
+                                gatherFiles(mediaType, fullPath, level+1);
+                            }
+                        }
+                        else {
+                            recordError('w', `Unexpected directory within album at ${fullPath}.`)
+                        }
+                    }
+                    else if (level == 2) {
+                        var model = null;
+                        if (mediaType == PHOTOS) {
+                            model = new Photo(fullPath);
+                        }
+                        else {
+                            model = new Video(fullPath);
+                        }
 
-function videosFinished() {
-    timeVideosFinished = Math.floor(Date.now() / 1000);
-    mode = MODE_NONE;
+                        if (model.hasValidExtension()) {
+                            files.push(model);
+                            totalMedia++;
+                        }
+                        else {
+                            recordError('w', `File ${fullPath} has an invalid mime-type for a ${mediaType == PHOTOS ? "photo" : "video"}.`)
+                        }
+                    }
+                }
+                else {
+                    recordError('e', `Unable to stat ${fullPath}`)
+                }
+            }
 
-    console.log("");
-    console.log("Videos finished!");
-    console.log("");
-
-    updateStats();
-}
-
-function nextFile() {
-    pendingFiles.shift();
-    if (mode == MODE_PHOTOS)
-        completedPhotos++;
-    else if (mode == MODE_VIDEOS)
-        completedVideos++;
-
-    if (pendingFiles.length > 0) {
-        if (mode == MODE_PHOTOS)
-            processPhoto(pendingFiles[0]);
-        else if (mode == MODE_VIDEOS)
-            processVideo(pendingFiles[0]);
-    }
-    else {
-        processingFiles = false;
-        if (mode == MODE_PHOTOS)
-            photosFinished();
-        else if (mode == MODE_VIDEOS)
-            videosFinished();
-    }
-}
-
-function processPhoto(photo) {
-    processingFiles = true;
-    console.log("Processing photo " + photo.path + "...");
-
-    db.query("SELECT `year`, `album` FROM `photos` WHERE `filename` = ?", [photo.filename], function(error, results, fields) {
-        if (error) {
-            recordError('w', "Database error while processing " + photo.path + ": " + error);
-            nextFile();
+            // Keep track of how many processes are running
+            if (--processCount == 0) {
+                gatherFilesCompleted();
+            }
         }
         else {
-            if (results.length > 0) {
-                if (results[0].year != photo.year || results[0].album != photo.album) {
-                    recordError('w', "Duplicate filename found " + photo.path + " for existing " + results[0].year + "/" + results[0].album + "/" + photo.filename);
-                }
-                nextFile();
+            recordError('e', `Directory not found: ${directory}`);
+
+            // Keep track of how many processes are running
+            if (--processCount == 0) {
+                gatherFilesCompleted();
+            }
+        }
+    });
+}
+
+function gatherFilesCompleted() {
+    setTimeout(function() {
+        if (processCount == 0 && stage == STAGE_INDEX) {
+            console.log("Completed file search.");
+
+            if (files.length == 0) {
+                recordError('w', "No files were found during directory scan!");
+                updateCompleted();
             }
             else {
+                stage = STAGE_PROCESS;
+                processNextFile()
+            }
+        }
+    }, 1000);
+}
+
+function processNextFile() {
+    var media = files.pop();
+
+    var processCompleted = function() {
+        completedMedia++;
+        if (files.length == 0) {
+            updateStats();
+        }
+        else {
+            processNextFile();
+        }
+    }
+
+    if (media.type == "photo") {
+        processPhoto(media, processCompleted);
+    }
+    else if (media.type == "video") {
+        processVideo(media, processCompleted);        
+    }
+}
+
+function processPhoto(photo, callback) {
+    console.log(`Processing photo ${photo.path} [${completedMedia+1}/${totalMedia}]...`);
+
+    // Verify photo doesn't already exist in database.
+    db.get("SELECT year, album FROM photos WHERE filename = ?", photo.filename, function(error, row) {
+        if (error) {
+            recordError('w', `Database error while processing ${photo.path}: ${error}`);
+            callback();
+        }
+        else {
+            // Only add database information if photo doesn't exist
+            if (!row) {
                 photo.readExif(function(error) {
                     if (error) {
                         console.log(error);
                     }
 
-                    db.query(`
-                        INSERT INTO \`photos\`
-                        (
-                            \`filename\`,
-                            \`album\`,
-                            \`year\`,
-                            \`timestamp\`,
-                            \`suspect_time\`,
-                            \`rotation\`,
-                            \`width\`,
-                            \`height\`
+                    if (modifiedAlbums.indexOf(`${photo.year}/${photo.album}`) < 0) {
+                        modifiedAlbums.push(`${photo.year}/${photo.album}`);
+                    }
+
+                    if (modifiedYears.indexOf(photo.year) < 0) {
+                        modifiedYears.push(photo.year);
+                    }
+
+                    db.run(`
+                        INSERT INTO photos (
+                            filename,
+                            album,
+                            year,
+                            timestamp,
+                            suspect_time,
+                            rotation,
+                            width,
+                            height,
+                            make,
+                            model,
+                            lens_model,
+                            filesize,
+                            fnumber,
+                            exposure_time,
+                            focal_length,
+                            iso,
+                            latitude,
+                            longitude,
+                            direction
                         )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+
                         [
                             photo.filename,
                             photo.album,
@@ -210,32 +210,6 @@ function processPhoto(photo) {
                             photo.getRotation(),
                             photo.getWidth(),
                             photo.getHeight(),
-                        ], function(error, results, fields) {
-                            if (error) {
-                                recordError('w', "Error saving " + photo.path + " to database: " + error);
-                            }
-                        }
-                    );
-
-                    db.query(`
-                        INSERT INTO \`photos_metadata\`
-                        (
-                            \`filename\`,
-                            \`make\`,
-                            \`model\`,
-                            \`lens_model\`,
-                            \`filesize\`,
-                            \`fnumber\`,
-                            \`exposure_time\`,
-                            \`focal_length\`,
-                            \`iso\`,
-                            \`latitude\`,
-                            \`longitude\`,
-                            \`direction\`
-                        )
-                        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [
-                            photo.filename,
                             photo.getMake(),
                             photo.getModel(),
                             photo.getLensModel(),
@@ -246,66 +220,64 @@ function processPhoto(photo) {
                             photo.getISO(),
                             photo.getGPSLatitude(),
                             photo.getGPSLongitude(),
-                            photo.getGPSDirection(),
-                        ]
-                    );
+                            photo.getGPSDirection()
+                        ],
 
-                    if (!modifiedAlbums.indexOf(photo.year + "/" + photo.album) > -1) {
-                        modifiedAlbums.push(photo.year + "/" + photo.album);
-                    }
-                    if (!modifiedYears.indexOf(photo.year) > -1) {
-                        modifiedYears.push(photo.year);
-                    }
+                        function(err) {
+                            if (err) {
+                                recordError("w", `Database error while processing ${photo.filename}: ${err}`);
+                            }
 
-                    nextFile();
+                            callback();
+                        });
                 });
+            }
+            else {
+                if (row.year != photo.year || row.album != photo.album) {
+                    recordError('w', `Found duplicate files ${photo.path} and ${PHOTOS_DIR}/${row.year}/${row.album}/${row.filename}`)
+                }
+                callback();
             }
         }
     });
 }
 
-function processVideo(video) {
-    processingFiles = true;
-    console.log("Processing video " + video.path + "...");
+function processVideo(video, callback) {
+    console.log(`Processing video ${video.path} [${completedMedia+1}/${totalMedia}]...`);
 
-    db.query("SELECT `year`, `album` FROM `videos` WHERE `filename` = ?", [video.filename], function(error, results, fields) {
+    // Verify video doesn't already exist in database.
+    db.get("SELECT year, album FROM videos WHERE filename = ?", video.filename, function(error, row) {
         if (error) {
-            recordError('w', "Database error while processing " + video.path + ": " + error);
-            nextFile();
+            recordError('w', `Database error while processing ${video.path}: ${error}`);
+            callback();
         }
         else {
-            if (results.length > 0) {
-                if (results[0].year != video.year || results[0].album != video.album) {
-                    recordError('w', "Duplicate filename found " + video.path + " for existing " + results[0].year + "/" + results[0].album + "/" + video.filename);
-                }
-                nextFile();
-            }
-            else {
+            // Only add database information if video doesn't exist
+            if (!row) {
                 video.probe(function(error) {
                     if (error) {
                         console.log(error);
                     }
 
-                    db.query(`
-                        INSERT INTO videos
-                        (filename, album, year, timestamp, suspect_time, width, height, length)
-                        VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [
-                            video.filename,
-                            video.album,
-                            video.year,
-                            video.getTimestamp(recordError),
-                            video.suspectTime,
-                            video.getWidth(),
-                            video.getHeight(),
-                            video.getLength()
-                        ]
-                    );
+                    if (modifiedAlbums.indexOf(`${video.year}/${video.album}`) < 0) {
+                        modifiedAlbums.push(`${video.year}/${video.album}`);
+                    }
 
-                    db.query(`
-                        INSERT INTO \`videos_metadata\`
-                        (
+                    if (modifiedYears.indexOf(video.year) < 0) {
+                        modifiedYears.push(video.year);
+                    }
+
+                    db.run(`
+                        INSERT INTO videos (
                             filename,
+                            album,
+                            year,
+                            timestamp,
+                            suspect_time,
+                            rotation,
+                            width,
+                            height,
+                            length,
                             filesize,
                             format,
                             video_codec,
@@ -318,9 +290,18 @@ function processVideo(video) {
                             audio_sample_rate,
                             audio_bitrate
                         )
-                        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+
                         [
                             video.filename,
+                            video.album,
+                            video.year,
+                            video.getTimestamp(recordError),
+                            video.suspectTime,
+                            0,
+                            video.getWidth(),
+                            video.getHeight(),
+                            video.getLength(),
                             video.getFilesize(),
                             video.getFormat(),
                             video.getVideoCodec(),
@@ -332,110 +313,117 @@ function processVideo(video) {
                             video.getAudioChannelLayout(),
                             video.getAudioSampleRate(),
                             video.getAudioBitrate()
-                        ]
-                    );
+                        ],
 
-                    if (!modifiedAlbums.indexOf(video.year + "/" + video.album) > -1) {
-                        modifiedAlbums.push(video.year + "/" + video.album);
-                    }
-                    if (!modifiedYears.indexOf(video.year) > -1) {
-                        modifiedYears.push(video.year);
-                    }
+                        function(err) {
+                            if (err) {
+                                recordError("w", `Database error while processing ${video.filename}: ${err}`);
+                            }
 
-                    nextFile();
+                            callback();
+                        });
                 });
+            }
+            else {
+                if (row.year != video.year || row.album != video.album) {
+                    recordError('w', `Found duplicate files ${video.path} and ${Constants.VIDEOS_DIR}/${row.year}/${row.album}/${row.filename}`)
+                }
+                callback();
             }
         }
     });
 }
 
-function readFolder(directory, level=0) {
-    directoryProcesses += 1;
-    console.log("Reading directory " + directory +"...")
-    fs.readdir(directory, function(err, files) {
-        for (var i = 0; i < files.length; i++) {
-            var stat = fs.statSync(directory + "/" + files[i]);
-            if (stat) {
-                if (stat.isDirectory()) {
-                    if (level < 2) {
-                        if (level == 0 && isNaN(parseInt(files[i]))) {
-                            recordError('w', "Non-numerical directory " + directory + "/" + files[i] + " found in root folder.");
-                        }
-                        else {
-                            readFolder(directory + "/" + files[i], level+1);
-                        }
-                    }
-                    else {
-                        recordError('w', "Unexpected directory " + directory + "/" + files[i] + " found in album folder.");
-                    }
-                }
-                else {
-                    if (level == 2) {
-                        var obj = null;
-                        if (mode == MODE_PHOTOS) {
-                            obj = new Photo(directory + "/" + files[i]);
-                        }
-                        else if (mode == MODE_VIDEOS) {
-                            obj = new Video(directory + "/" + files[i]);
-                        }
+function updateStats() {
+    console.log("Updating cached statistics...");
+    stage = STAGE_STATS_CACHE
 
-                        if (obj.hasValidExtension()) {
-                            pendingFiles.push(obj);
-                            if (mode == MODE_PHOTOS) {
-                                totalPhotos++;
-                            }
-                            else if (mode == MODE_VIDEOS) {
-                                totalVideos++;
-                            }
-                        }
-                        else {
-                            recordError('w', "File " + obj.path + " has an invalid mime-type.");
-                        }
-                    }
-                }
-            }
-            else {
-                recordError('e', "Unable to stat " + directory + "/" + files[i]);
-            }
+    db.parallelize(function() {
+        for (var i = 0; i < modifiedAlbums.length; i++) {
+            var albumKey = modifiedAlbums[i].split('/');
+            db.run(`
+                REPLACE INTO albums (
+                    album,
+                    year,
+                    photos,
+                    videos,
+                    time_start,
+                    time_end
+                )
+                SELECT
+                    $album,
+                    $year,
+                    (
+                        SELECT COUNT(1)
+                        FROM photos
+                        WHERE album = $album AND year = $year
+                    ),
+                    (
+                        SELECT COUNT(1)
+                        FROM videos
+                        WHERE album = $album AND year = $year
+                    ),
+                    MIN(timestamp),
+                    MAX(timestamp)
+                FROM (
+                    SELECT timestamp FROM photos WHERE album = $album AND year = $year AND suspect_time=0
+                    UNION ALL
+                    SELECT timestamp FROM videos WHERE album = $album AND year = $year AND suspect_time=0
+                ) ts`, {
+                    $album: albumKey[1],
+                    $year: albumKey[0]
+                });
         }
-        directoryProcesses -= 1;
-        if (directoryProcesses == 0) {
-            console.log("");
-            console.log("Completed finding files!");
-            console.log("");
-            if (pendingFiles.length == 0) {
-                recordError("w", "Directory scan finished with no files found.");
-                if (mode == MODE_PHOTOS) {
-                    photosFinished();
-                }
-                else if (mode == MODE_VIDEOS) {
-                    videosFinished();
-                }
-            }
-            else {
-                // Start the file processer
-                if (mode == MODE_PHOTOS) {
-                    processPhoto(pendingFiles[0]);
-                }
-                else if (mode == MODE_VIDEOS) {
-                    processVideo(pendingFiles[0]);
-                }
-            }
+
+        for (var i = 0; i < modifiedYears.length; i++) {
+            db.run(` 
+                REPLACE INTO years (
+                    year,
+                    albums,
+                    photos,
+                    videos
+                )
+                SELECT
+                    $year,
+                    (
+                        SELECT COUNT(1)
+                        FROM albums
+                        WHERE year = $year
+                    ),
+                    (
+                        SELECT COUNT(1)
+                        FROM photos
+                        WHERE year = $year
+                    ),
+                    (
+                        SELECT COUNT(1)
+                        FROM videos
+                        WHERE year = $year
+                    )
+            `, {
+                $year: modifiedYears[i]
+            });
         }
-    })
+
+        updateCompleted();
+    }); 
+}
+
+function recordError(type, message) {
+    console.log("[" + type + "] " + message);
+    errors.push({'t': type, 'm': message});
 }
 
 router.get("/", function(req, res) {
     var result = {success: true};
 
-    if (updating) {
+    if (stage == STAGE_INDEX || stage == STAGE_PROCESS || stage == STAGE_STATS_CACHE) {
         res.statusCode = 409;
         result.success = false;
         result.error = "update_in_progress";
     }
     else {
-        resetProcessVariables();
-        updatePhotoIndex();
+        updateIndex(); 
         db = req.db;
     }
 
@@ -445,22 +433,17 @@ router.get("/", function(req, res) {
 router.get("/status", function(req, res) {
     var result = {success: true};
 
-    if (mode == MODE_NONE) {
+    if (stage == STAGE_NONE) {
         res.statusCode = 404;
         result.success = false;
         result.error = "no_activity";
     }
     else {
-        result.mode = mode;
-        result.photos_start_time = timePhotosStarted;
-        result.photos_stop_time = timePhotosFinished;
-        result.videos_start_time = timeVideosStarted;
-        result.videos_stop_time = timeVideosFinished;
-        result.reading_directories = (directoryProcesses > 0);
-        result.photos_completed = completedPhotos;
-        result.photos_total = totalPhotos;
-        result.videos_completed = completedVideos;
-        result.videos_total = totalVideos;
+        result.stage = stage;
+        result.start_time = timeStarted;
+        result.stop_time = timeCompleted;
+        result.total_files = totalMedia;
+        result.completed_files = completedMedia;
         result.errors = errors;
     }
 

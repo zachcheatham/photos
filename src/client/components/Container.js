@@ -1,9 +1,9 @@
 import React from 'react';
-import { withStyles } from 'material-ui/styles';
+import { withStyles } from "@material-ui/styles";
 
 const styles = theme => ({
     container: theme.mixins.gutters({
-        paddingTop: theme.spacing.unit * 11,
+        paddingTop: theme.spacing(11),
         flex: 1,
     })
 });

@@ -5,28 +5,31 @@ import { withRouter } from "react-router-dom"
 
 import axios from "axios";
 
-import AppBar from "material-ui/AppBar";
-import IconButton from "material-ui/IconButton";
-import List, { ListItem, ListItemText } from "material-ui/List";
-import Menu, {MenuItem} from "material-ui/Menu"
-import Toolbar from "material-ui/Toolbar";
-import Typography from "material-ui/Typography";
-import { withStyles } from "material-ui/styles";
+import AppBar from "@material-ui/core/AppBar";
+import IconButton from "@material-ui/core/IconButton";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import Menu from "@material-ui/core/Menu"
+import MenuItem from "@material-ui/core/MenuItem"
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import { withStyles } from "@material-ui/styles";
 
-import KeyboardArrowDownIcon from "material-ui-icons/KeyboardArrowDown";
-import MoreVertIcon from "material-ui-icons/MoreVert";
-import PhotoIcon from "material-ui-icons/Photo";
+import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
+import PhotoIcon from "@material-ui/icons/Photo";
 
 const styles = theme => ({
     icon: {
-        margin: theme.spacing.unit
+        margin: theme.spacing(1)
     },
     flex: {
         flex: 1
     },
     netError: {
         color: theme.palette.error.A400,
-        marginBottom: theme.spacing.unit
+        marginBottom: theme.spacing(1)
     },
     selector: {
         padding: 0,
@@ -100,9 +103,9 @@ class PhotosAppBar extends React.Component {
         this.state.selectedYear = this.getRoutedYear(this.props.location.pathname);
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.location.pathname != this.props.location.pathname) {
-            this.state.selectedYear = this.getRoutedYear(nextProps.location.pathname);
+    componentDidUpdate(prevProps) {
+        if (prevProps.location.pathname != this.props.location.pathname) {
+            this.state.selectedYear = this.getRoutedYear(this.props.location.pathname);
         }
     }
 
@@ -123,7 +126,7 @@ class PhotosAppBar extends React.Component {
                                 disableTypography
                                 primary={
                                     <Typography
-                                        type="title"
+                                        variant="h6"
                                         color="inherit"
                                     >
                                         {this.state.selectedYear == 0 ? "Overview" : this.state.selectedYear}
@@ -148,7 +151,7 @@ class PhotosAppBar extends React.Component {
                     id="years-menu"
                     anchorEl={this.state.yearsMenuAnchor}
                     open={this.state.yearsMenuOpen}
-                    onRequestClose={this.requestYearsMenuClose}
+                    onClose={this.requestYearsMenuClose}
                 >
                     <MenuItem
                         key={0}
@@ -172,7 +175,7 @@ class PhotosAppBar extends React.Component {
                     id="app-menu"
                     anchorEl={this.state.menuAnchor}
                     open={this.state.menuOpen}
-                    onRequestClose={this.requestMenuClose}
+                    onClose={this.requestMenuClose}
                 >
                     <MenuItem onClick={this.requestIndexManagerOpen}>Update Indexes</MenuItem>
                 </Menu>

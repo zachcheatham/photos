@@ -11,23 +11,23 @@ router.get("/:coordinates", function(req, res) {
             if (!isNaN(lat) && !isNaN(long)) {
                 const latRound = Math.round(lat * 100) / 100
                 const longRound = Math.round(long * 100) / 100
-                req.db.query(
-                    "SELECT `location` FROM `geodecode_cache` WHERE `lat` = ? AND `lon` = ?",
+                req.db.get(
+                    "SELECT location FROM geodecode_cache WHERE lat = ? AND lon = ?",
                     [latRound, longRound],
-                    function(error, results, fields) {
-                        if (results && results.length > 0) {
+                    function(error, row) {
+                        if (row) {
                             res.json({
                                 "success": true,
                                 "cached": true,
                                 "latitude": latRound,
                                 "longitude": longRound,
-                                "location": results[0]["location"]
+                                "location": row.location
                             });
                         }
                         else {
                             request(
                                 {
-                                    url: "http://nominatim.openstreetmap.org/reverse?format=json&zoom=6&lat=" + latRound + "&lon=" + longRound,
+                                    url: "http://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=" + latRound + "&lon=" + longRound,
                                     headers: {
                                         "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0",
                                     }
@@ -81,9 +81,9 @@ router.get("/:coordinates", function(req, res) {
                                             "location": location
                                         });
 
-                                        req.db.query(`
-                                            INSERT INTO \`geodecode_cache\`
-                                            (\`lat\`, \`lon\`, \`location\`)
+                                        req.db.run(`
+                                            INSERT INTO geodecode_cache (
+                                                lat, lon, location)
                                             VALUES(?, ?, ?)`,
                                             [latRound, longRound, location]
                                         );

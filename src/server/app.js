@@ -1,11 +1,12 @@
-const PORT = 3000;
-
 const bodyParser = require("body-parser");
 const express = require("express");
 const fallback = require("express-history-api-fallback");
 
+const Constants = require("./helpers/constants");
 const app = express();
-const database = require("./database.js");
+const initDatabase = require("./database.js");
+
+var database = null;
 
 // Include database
 app.use("/api/*", function(req, res, next) {
@@ -27,13 +28,20 @@ app.use("/api/update-index", require("./routes/update-index"));
 app.use(express.static(__dirname + "/../../static"));
 app.use(fallback("index.html", {root: __dirname + "/../../static"}));
 
-app.listen(PORT, (err) => {
-    if (err)
-        console.log(err);
-    else {
-        console.log("Photo Browser Server 1.0.0.");
-        console.log("Server Started.")
-    }
+console.log("Photo Browser Server 1.1.0.");
+initDatabase((db) => {
+
+    console.log(`Starting web server on port ${Constants.PORT}...`);
+
+    database = db;
+
+    app.listen(Constants.PORT, (err) => {
+        if (err)
+            console.log(err);
+        else {
+            console.log("Server Started.")
+        }
+    });
 });
 
 module.exports = app;

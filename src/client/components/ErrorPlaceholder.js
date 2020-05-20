@@ -1,12 +1,12 @@
 import React from 'react';
 import { withRouter } from "react-router-dom"
 
-import Button from "material-ui/Button";
-import Typography from 'material-ui/Typography';
-import { withStyles } from 'material-ui/styles';
+import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
+import { withStyles } from "@material-ui/styles";
 
-import ErrorOutlineIcon from "material-ui-icons/ErrorOutline";
-import CloudOffIcon from "material-ui-icons/CloudOff";
+import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
+import CloudOffIcon from "@material-ui/icons/CloudOff";
 
 const styles = theme => ({
     error: {
@@ -22,10 +22,10 @@ const styles = theme => ({
     bigIcon: {
         height: 128,
         width: 128,
-        marginBottom: theme.spacing.unit * 2
+        marginBottom: theme.spacing(2)
     },
     button: {
-        marginTop: theme.spacing.unit * 4
+        marginTop: theme.spacing(4)
     }
 });
 
@@ -44,13 +44,13 @@ class ErrorPlaceHolder extends React.Component {
                     :
                         <ErrorOutlineIcon className={classes.bigIcon}/>
                     }
-                    <Typography type="display2">
+                    <Typography variant="h5">
                         {this.props.message}
                     </Typography>
                     {this.props.goBack ?
                         <Button
                             raised
-                            color="accent"
+                            color="secondary"
                             className={classes.button}
                             onClick={this.goBack}
                         >
@@ -62,7 +62,7 @@ class ErrorPlaceHolder extends React.Component {
                     {this.props.retry ?
                         <Button
                             raised
-                            color="accent"
+                            color="secondary"
                             className={classes.button}
                             onClick={this.props.retry}
                         >

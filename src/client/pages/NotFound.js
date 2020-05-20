@@ -1,11 +1,9 @@
 import React from 'react';
 import { withRouter } from "react-router-dom"
 
-import Button from "material-ui/Button";
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography"
-
-import CloudOffIcon from "material-ui-icons/CloudOff";
+import Button from "@material-ui/core/Button";
+import { withStyles } from "@material-ui/styles";
+import Typography from "@material-ui/core/Typography"
 
 import Container from "../components/Container"
 
@@ -14,7 +12,7 @@ const styles = (theme) => ({
         textAlign: "center"
     },
     button: {
-        marginTop: theme.spacing.unit * 2
+        marginTop: theme.spacing(2)
     }
 });
 
@@ -28,10 +26,10 @@ class NotFound extends React.Component {
 
         return (
             <Container className={classes.center}>
-                <Typography type="display3" gutterBottom>
+                <Typography variant="h6" gutterBottom>
                     Not Found
                 </Typography>
-                <Typography type="display1" color="inherit">
+                <Typography variant="h4" color="inherit">
                     Are you lost?
                 </Typography>
                 <Button

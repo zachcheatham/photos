@@ -1,4 +1,8 @@
-content/
+content
+videos
+photos
+thumbnails/
+*.sqlite3
 node_modules/
 static/
 package-lock.json

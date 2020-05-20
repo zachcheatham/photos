@@ -3,14 +3,14 @@ import React from "react";
 require("moment-duration-format");
 import moment from "moment";
 
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
+import { withStyles } from "@material-ui/styles";
+import Typography from "@material-ui/core/Typography";
 
 const styles = theme => ({
     root: {
         position: "absolute",
-        bottom: theme.spacing.unit,
-        right: theme.spacing.unit,
+        bottom: theme.spacing(1),
+        right: theme.spacing(1),
         padding: "2px 8px",
         color: "#fff",
         background: "rgba(0,0,0,0.4)",

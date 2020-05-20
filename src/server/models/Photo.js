@@ -6,6 +6,7 @@ var methods = Photo.prototype;
 
 function Photo(path) {
     this.path = path;
+    this.type="photo";
     var folders = path.split("/");
     this.filename = folders[folders.length-1];
     this.album = folders[folders.length-2];

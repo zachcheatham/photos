@@ -5,17 +5,16 @@ import axios from "axios";
 
 import ResizeAware from "react-resize-aware";
 
-import IconButton from "material-ui/IconButton";
-import { CircularProgress } from "material-ui/Progress";
-import { withStyles } from "material-ui/styles";
-import Toolbar from "material-ui/Toolbar";
+import IconButton from "@material-ui/core/IconButton";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import { withStyles } from "@material-ui/styles";
+import Toolbar from "@material-ui/core/Toolbar";
 
-import ArrowBackIcon from "material-ui-icons/ArrowBack";
-import FileDownloadIcon from "material-ui-icons/FileDownload";
-import InfoIcon from "material-ui-icons/Info";
-import MoreVertIcon from "material-ui-icons/MoreVert";
-import RotateRightIcon from "material-ui-icons/RotateRight";
-import ZoomOutIcon from "material-ui-icons/ZoomOut";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+import GetAppIcon from "@material-ui/icons/GetApp";
+import InfoIcon from "@material-ui/icons/Info";
+import RotateRightIcon from "@material-ui/icons/RotateRight";
+import ZoomOutIcon from "@material-ui/icons/ZoomOut";
 
 const styles = (theme) => ({
     main: {
@@ -405,7 +404,7 @@ class PhotoViewer extends React.Component {
                 onMouseMove={this.onWindowMouseMove}
             >
                 {!this.state.imageLoaded ?
-                    <CircularProgress color="accent" size={50} />
+                    <CircularProgress color="secondary" size={50} />
                 :
                     // BUG in ResizeAware. If you return an empty element,
                     //  it freaks out.
@@ -445,7 +444,7 @@ class PhotoViewer extends React.Component {
                             ""
                         }
                         <IconButton color="inherit">
-                            <FileDownloadIcon />
+                            <GetAppIcon />
                         </IconButton>
                         {this.props.info ?
                             <IconButton

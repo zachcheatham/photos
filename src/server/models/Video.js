@@ -6,6 +6,7 @@ var methods = Video.prototype;
 
 function Video(path) {
     this.path = path;
+    this.type="video";
     var folders = path.split("/");
     this.filename = folders[folders.length-1];
     this.album = folders[folders.length-2];
