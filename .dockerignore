@@ -1,0 +1,10 @@
+.git
+.gitignore
+node_modules
+content
+videos
+photos
+thumbnails
+*.sqlite3
+static
+package-lock.json
