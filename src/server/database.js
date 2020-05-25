@@ -1,7 +1,31 @@
-var sqlite = require("sqlite3");
-var Constants = require("./helpers/constants");
+const sqlite = require("sqlite3");
+const fs = require("fs");
+
+const Constants = require("./helpers/constants");
 
 var db;
+
+function updateDB(fromVersion, callback) {
+    const nextVersion = fromVersion+1;
+
+    console.log(`Upgrading database from version ${fromVersion} to ${nextVersion}...`);
+
+    var upgrade = require(`./db_updates/version_${nextVersion}.js`)
+
+    upgrade(db, function(err) {
+        if (err) {
+            console.error(`Error running database upgrade: ${err}`);
+            callback(err);
+        }
+        else if (nextVersion < Constants.DB_VERSION) {
+            update_db(nextVersion, callback);
+        }
+        else {
+            console.log("Database updates are complete.");
+            callback(false);
+        }
+    });
+}
 
 function initialize(callback) {
     console.log("Opening database...");
@@ -79,11 +103,51 @@ function initialize(callback) {
                         audio_sample_rate TEXT,
                         audio_bitrate INTEGER,
                         comment TEXT,
-                        PRIMARY KEY (filename));`,
-                        
+                        PRIMARY KEY (filename));`);
+
+            db.run(`CREATE TABLE IF NOT EXISTS settings (
+                        key TEXT NOT NULL,
+                        value TEXT,
+                        PRIMARY KEY (key));`,
             function() {
-                console.log("Database initialized.");
-                callback(db);
+                console.log("Checking for database updates...");
+
+                db.get("SELECT value FROM settings WHERE key='db_version'", function (err, row) {
+                    if (row) {
+                        console.log(`Current version: ${row.value} Latest version: ${Constants.DB_VERSION}`);
+
+                        if (row.value < Constants.DB_VERSION) {
+                            console.log("Backing up SQLite file in case of catastrophe...");
+
+                            fs.copyFileSync(`${Constants.DATA_DIR}/db.sqlite3`, `${Constants.DATA_DIR}/db-upgrade_backup.sqlite3`)
+
+                            updateDB(parseInt(row.value), function(err) {
+                                if (err) {
+                                    console.log("Restoring database backup...");
+
+                                    db.close(function() {
+                                        fs.unlinkSync(`${Constants.DATA_DIR}/db.sqlite3`);
+                                        fs.renameSync(`${Constants.DATA_DIR}/db-upgrade_backup.sqlite3`, `${Constants.DATA_DIR}/db.sqlite3`);
+                                        process.exit(1);
+                                    });
+                                }
+                                else {
+                                    fs.unlinkSync(`${Constants.DATA_DIR}/db-upgrade_backup.sqlite3`);
+                                    callback(db);
+                                }
+                            });
+                        }
+                        else {
+                            callback(db);
+                        }
+                    }
+                    else {
+                        console.log("Fresh install. Populating empty settings...");
+                        db.serialize(function() {
+                            db.run(`INSERT INTO settings VALUES('db_version', '${Constants.DB_VERSION}');`);
+                        });
+                    }
+                });
             });
         });
     }

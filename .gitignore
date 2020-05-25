@@ -3,6 +3,7 @@ videos
 photos
 thumbnails/
 *.sqlite3
+*.sqlite3-journal
 node_modules/
 static/
 package-lock.json

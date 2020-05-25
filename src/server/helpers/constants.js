@@ -3,4 +3,6 @@ module.exports = {
     VIDEOS_DIR: process.env.VIDEOS_DIR ? process.env.VIDEOS_DIR : "./videos",
     DATA_DIR: process.env.DATA_DIR ? process.env.DATA_DIR : ".",
     PORT: process.env.PHOTOS_PORT ? process.env.PHOTOS_PORT : 8080,
+    DB_VERSION: 1,
+    VERSION: "1.1.0"
 }
