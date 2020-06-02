@@ -105,7 +105,7 @@ class PhotosAppBar extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.location.pathname != this.props.location.pathname) {
-            this.state.selectedYear = this.getRoutedYear(this.props.location.pathname);
+            this.setState({selectedYear: this.getRoutedYear(this.props.location.pathname)});
         }
     }
 
