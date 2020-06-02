@@ -12,7 +12,7 @@ import PhotosAppBar from "../../components/PhotosAppBar";
 const AlbumList = lazy(() => import("../../pages/AlbumList"));
 const Album = lazy(() => import("../../pages/Album"));
 const NotFound = lazy(() => import("../../pages/NotFound"));
-const Overview = lazy(() => import("../../pages/Overview"));
+const Recent = lazy(() => import("../../pages/Recent"));
 
 import styles from "./styles"
 
@@ -44,9 +44,9 @@ class Index extends React.Component {
 
                         <Suspense fallback={<span>Loading...</span>}>
                             <Switch>
-                                <Route exact path="/" component={Overview} />
-                                <Route exact path="/:year" component={AlbumList} />
-                                <Route exact path="/:year/:album/:photo?" component={Album} />
+                                <Route exact path="/:file(\w+\.\w+)?" component={Recent} />
+                                <Route exact path="/:year(\d{4})" component={AlbumList} />
+                                <Route exact path="/:year(\d{4})/:album/:photo?" component={Album} />
                                 <Route exact path="*" component={NotFound} />
                             </Switch>
                         </Suspense>

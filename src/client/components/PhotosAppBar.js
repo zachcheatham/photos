@@ -90,7 +90,7 @@ class PhotosAppBar extends React.Component {
 
     getRoutedYear = (pathname) => {
         var parts = pathname.split("/");
-        if (parts.length < 2 || parts[1].length < 1) {
+        if (parts.length < 2 || parts[1].length != 4) {
             return 0;
         }
         else {
@@ -129,7 +129,7 @@ class PhotosAppBar extends React.Component {
                                         variant="h6"
                                         color="inherit"
                                     >
-                                        {this.state.selectedYear == 0 ? "Overview" : this.state.selectedYear}
+                                        {this.state.selectedYear == 0 ? "Recently Added" : this.state.selectedYear}
                                     </Typography>
                                 }
                                 />
@@ -158,7 +158,7 @@ class PhotosAppBar extends React.Component {
                         selected={this.state.selectedYear == 0}
                         onClick={event => this.switchYear(event, 0)}
                     >
-                        Overview
+                        Recently Added
                     </MenuItem>
 
                     {this.state.years.slice(0).reverse().map((year, index) =>

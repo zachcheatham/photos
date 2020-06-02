@@ -15,7 +15,7 @@ function populateAddedTimestamp(db, callback) {
             firstCompleted = true;
     }
 
-    db.all("SELECT filename, year, album FROM photos", function(err, rows) {
+    db.all("SELECT filename, year, album, timestamp FROM photos", function(err, rows) {
         if (err) {
             callback(err);
         }
@@ -30,8 +30,11 @@ function populateAddedTimestamp(db, callback) {
                             callback(err);
                         }
                         else {
+                            var time = (stats.mtime / 1000);
+                            if (time > timeNow()) time = 0;
+
                             db.run("UPDATE photos SET added_timestamp=? WHERE filename=?;",
-                            [(stats.mtime / 1000), fileInfo.filename],
+                            [time, fileInfo.filename],
                             function(err) {
                                 if (err) {
                                     console.error(`Unable to update timestamp of file: ${fileInfo.filename}`);
@@ -52,7 +55,7 @@ function populateAddedTimestamp(db, callback) {
         }
     });
 
-    db.all("SELECT filename, year, album FROM videos", function(err, rows) {
+    db.all("SELECT filename, year, album, timestamp FROM videos", function(err, rows) {
         if (err) {
             callback(err);
         }
@@ -67,8 +70,11 @@ function populateAddedTimestamp(db, callback) {
                             callback(err);
                         }
                         else {
-                            db.run("UPDATE photos SET added_timestamp=? WHERE filename=?;",
-                            [(stats.mtime / 1000), fileInfo.filename],
+                            var time = (stats.mtime / 1000);
+                            if (time > timeNow()) time = 0;
+
+                            db.run("UPDATE videos SET added_timestamp=? WHERE filename=?;",
+                            [time, fileInfo.filename],
                             function(err) {
                                 if (err) {
                                     console.error(`Unable to update timestamp of file: ${fileInfo.filename}`);
@@ -107,7 +113,6 @@ function upgrade(db, finalCallback) {
                             finalCallback(err);
                         }
                         else {
-                            finalCallback(false);
                             db.run(`REPLACE INTO settings (key, value) VALUES('db_version', ${UPGRADE_VERSION});`, function(error) {
                                 if (error) {
                                     finalCallback(error);
@@ -122,6 +127,10 @@ function upgrade(db, finalCallback) {
             });
         }
     });
+}
+
+function timeNow() {
+    return Math.floor(Date.now() / 1000);
 }
 
 module.exports = upgrade;

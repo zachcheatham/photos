@@ -6,7 +6,6 @@ import { withRouter } from "react-router-dom"
 
 import GridList from "@material-ui/core/GridList";
 import GridListTile from "@material-ui/core/GridListTile";
-import GridListTileBar from "@material-ui/core/GridListTileBar";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { withStyles } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
@@ -20,7 +19,7 @@ import ThumbLength from "../components/ThumbLength"
 
 import Media from "../pages/Media"
 
-const styles = (theme) => ({
+const styles = () => ({
     center: {
         textAlign: "center"
     },

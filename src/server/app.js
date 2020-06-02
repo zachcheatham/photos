@@ -22,6 +22,7 @@ app.use("/api/info", require("./routes/info"));
 app.use("/api/geodecode", require("./routes/geodecode"));
 app.use("/api/edit", require("./routes/edit"));
 app.use("/api/media", require("./routes/media"));
+app.use("/api/recent", require("./routes/recent"));
 app.use("/api/thumbnail", require("./routes/thumbnail"));
 app.use("/api/update-index", require("./routes/update-index"));
 
