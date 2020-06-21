@@ -10,6 +10,7 @@ import GridListTile from "@material-ui/core/GridListTile";
 import { withStyles } from "@material-ui/styles";
 import withWidth from '@material-ui/core/withWidth';
 import { CircularProgress } from '@material-ui/core';
+import InfiniteScroll from 'react-infinite-scroller';
 
 import Container from "../components/Container"
 import ErrorPlaceholder from '../components/ErrorPlaceholder';
@@ -36,35 +37,25 @@ const styles = (theme) => ({
 
 class Overview extends React.Component {
     state = {
-        connectionProblem: false,
-        photos: null,
+        photos: [],
         photo: null
     }
 
-    fetchPhotos = () => {
-        axios.get(constants.API_URL + "/recent")
+    loadNextPhotos = (page) => {
+        axios.get(constants.API_URL + "/recent/" + page)
             .then((response) => {
                 this.setState({
-                    connectionProblem: false,
-                    photos: response.data.photos
+                    photos: [...this.state.photos, ...response.data.photos]
                 });
             })
             .catch((error) => {
                 console.log("Unable to fetch recents: " + error);
-                this.setState({
-                    connectionProblem: true,
-                    photos: null
-                });
             });
     }
 
     openPhoto = (photo) => {
         this.props.history.push("/" + photo);
         //this.setState({"photo": photo})
-    }
-
-    componentDidMount() {
-        this.fetchPhotos();
     }
 
     render() {
@@ -90,27 +81,14 @@ class Overview extends React.Component {
                 columns = 7;
         }
 
-        if (
-            !this.state.connectionProblem &&
-            !this.state.photos
-        ) {
-            return (
-                <div className={classes.center}>
-                    <CircularProgress color="secondary" size={128} />
-                </div>
-            )
-        }
-        else if (this.state.connectionProblem) {
-            return (
-                <ErrorPlaceholder
-                    message="Conenction Problem"
-                    connection={true}
-                    retry={() => this.fetchPhotos()} />
-            )
-        }
-        else {
-            return (
-                <Container>
+        return (
+            <Container>
+                <InfiniteScroll
+                    pageStart={0}
+                    loadMore={this.loadNextPhotos}
+                    hasMore={true}
+                    loader={<div className="loader" key={0}>Loading...</div>}>
+
                     <GridList
                         cellHeight={cellHeight}
                         cols={columns}>
@@ -133,14 +111,14 @@ class Overview extends React.Component {
                                 </GridListTile>
                             )
                         })}
-
                     </GridList>
-                    <Media
-                        show={this.props.match.params.file !== undefined}
-                        filename={this.props.match.params.file} />
-                </Container>
-            )
-        }
+
+                </InfiniteScroll>
+                <Media
+                    show={this.props.match.params.file !== undefined}
+                    filename={this.props.match.params.file} />
+            </Container>
+        )
     }
 }
 

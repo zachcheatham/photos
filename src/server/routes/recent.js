@@ -1,6 +1,10 @@
 const router = require("express").Router();
 
-router.get("/", function(req, res) {
+const ITEMS_PER_PAGE=50
+
+router.get("/:page", function(req, res) {
+    const offset = ITEMS_PER_PAGE * (req.params.page - 1)
+
     req.db.all(`
         SELECT "photo" as type, filename, added_timestamp, NULL as length
         FROM photos
@@ -10,8 +14,9 @@ router.get("/", function(req, res) {
         SELECT "video" as type, filename, added_timestamp, length
         FROM videos
         
-        ORDER BY added_timestamp
-        DESC LIMIT 50;`,
+        ORDER BY added_timestamp DESC
+        LIMIT ${ITEMS_PER_PAGE}
+        OFFSET ${offset};`,
     function(err, rows) {
         if (err) {
             res.statusCode = 500;
@@ -22,7 +27,7 @@ router.get("/", function(req, res) {
             });
         }
         else {
-            res.json({"*": true, "photos": rows});
+            res.json({"success": true, "photos": rows});
         }
     });
 });
