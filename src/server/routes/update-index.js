@@ -197,7 +197,8 @@ function processPhoto(photo, callback) {
                             iso,
                             latitude,
                             longitude,
-                            direction
+                            direction,
+                            added_timestamp
                         )
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 
@@ -220,7 +221,8 @@ function processPhoto(photo, callback) {
                             photo.getISO(),
                             photo.getGPSLatitude(),
                             photo.getGPSLongitude(),
-                            photo.getGPSDirection()
+                            photo.getGPSDirection(),
+                            timeStarted
                         ],
 
                         function(err) {
@@ -288,7 +290,8 @@ function processVideo(video, callback) {
                             audio_channels,
                             audio_channel_layout,
                             audio_sample_rate,
-                            audio_bitrate
+                            audio_bitrate,
+                            added_timestamp
                         )
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 
@@ -312,7 +315,8 @@ function processVideo(video, callback) {
                             video.getAudioChannels(),
                             video.getAudioChannelLayout(),
                             video.getAudioSampleRate(),
-                            video.getAudioBitrate()
+                            video.getAudioBitrate(),
+                            timeStarted
                         ],
 
                         function(err) {
